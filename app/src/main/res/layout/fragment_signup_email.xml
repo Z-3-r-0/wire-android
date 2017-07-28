@@ -26,47 +26,62 @@
              android:layout_height="match_parent"
     >
 
-    <!-- header -->
-    <FrameLayout
+    <!-- Header -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="@dimen/first_time__create_account__padding_left"
-        android:layout_marginRight="@dimen/first_time__create_account__padding_right"
-        android:layout_marginTop="@dimen/first_time__logo__padding_top"
+        android:orientation="vertical"
+        android:layout_gravity="top|left"
         >
 
-        <LinearLayout
-            android:id="@+id/ll__registrations_button__back"
+        <ImageView
+            android:id="@+id/iv__reg__logo"
+            android:layout_width="@dimen/first_time__logo__width"
+            android:layout_height="@dimen/first_time__logo__height"
+            android:layout_marginLeft="@dimen/first_time__logo__padding_left"
+            android:layout_marginTop="@dimen/wire_logo_margin_top"
+            android:scaleType="fitCenter"
+            android:src="@drawable/wire"
+            />
+
+        <com.waz.zclient.ui.text.TypefaceTextView
+            android:id="@+id/tv__reg__title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"
-            >
+            android:layout_marginLeft="@dimen/first_time__create_account__padding_left"
+            android:layout_marginRight="@dimen/first_time__create_account__padding_right"
+            android:layout_marginTop="@dimen/wire__padding__big"
+            android:gravity="left"
+            android:lineSpacingExtra="0dp"
+            android:textColor="@color/text__primary_dark"
+            android:textSize="@dimen/wire__text_size__medium"
+            custom:font="@string/wire__typeface__light"
+            />
 
-            <com.waz.zclient.ui.text.GlyphTextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                custom:font="@string/wire__typeface__light"
-                android:textSize="@dimen/wire__text_size__regular"
-                android:text="@string/glyph__previous"
-                android:textColor="@color/text__primary_dark"
-                />
+    </LinearLayout>
 
-            <com.waz.zclient.ui.text.TypefaceTextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                custom:font="@string/wire__typeface__light"
-                android:layout_marginLeft="@dimen/wire__padding__small"
-                android:text="@string/registration_back"
-                android:textAllCaps="true"
-                android:layout_gravity="center_vertical"
-                android:textSize="@dimen/wire__text_size__small"
-                android:gravity="center_vertical"
-                android:textColor="@color/text__primary_dark"
-                />
+    <LinearLayout
+        android:id="@+id/close_add_account"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|right"
+        android:paddingStart="@dimen/first_time__logo__padding_left"
+        android:paddingEnd="@dimen/first_time__logo__padding_left"
+        android:paddingTop="@dimen/wire_logo_margin_top"
+        android:paddingBottom="@dimen/wire_logo_margin_top"
+        >
 
-        </LinearLayout>
-    </FrameLayout>
+        <com.waz.zclient.ui.text.GlyphTextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/glyph__close"
+            android:gravity="end"
+            android:textColor="@color/text__primary_dark"
+            android:textSize="@dimen/wire__text_size__regular"
+            custom:font="@string/wire__typeface__light"
+            />
+
+    </LinearLayout>
 
     <!-- body -->
     <LinearLayout
@@ -80,14 +95,52 @@
         android:orientation="vertical"
         >
 
-        <!-- Info Text -->
-        <com.waz.zclient.ui.text.TypefaceTextView
+        <com.waz.zclient.ui.views.tab.TabIndicatorLayout
+            android:id="@+id/til__app_entry"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/register"
-            custom:font="@string/wire__typeface__light"
-            android:textSize="@dimen/wire__text_size__medium"
             />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/reg__signin_option__height"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="@dimen/reg__signin_option__height_margin"
+            android:layout_marginTop="@dimen/reg__signin_option__height_margin"
+            >
+
+            <com.waz.zclient.ui.text.TypefaceTextView
+                android:id="@+id/ttv__new_reg__sign_in__go_to__email"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_gravity="right"
+                android:layout_marginRight="@dimen/wire__padding__16"
+                android:gravity="center_vertical"
+                android:paddingLeft="@dimen/wire__padding__16"
+                android:paddingRight="@dimen/wire__padding__16"
+                android:text="@string/email_sign_in"
+                android:textAllCaps="true"
+                android:textColor="@color/text__primary_dark"
+                android:textSize="@dimen/wire__text_size__small"
+                custom:font="@string/wire__typeface__medium"
+                android:background="@drawable/selector__reg__signin"
+                />
+
+            <com.waz.zclient.ui.text.TypefaceTextView
+                android:id="@+id/ttv__new_reg__sign_in__go_to__phone"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_gravity="right"
+                android:gravity="center_vertical"
+                android:paddingLeft="@dimen/wire__padding__16"
+                android:paddingRight="@dimen/wire__padding__16"
+                android:text="@string/phone_sign_in"
+                android:textAllCaps="true"
+                android:textColor="@color/text__primary_dark_40"
+                android:textSize="@dimen/wire__text_size__small"
+                custom:font="@string/wire__typeface__medium"
+                />
+        </LinearLayout>
 
 
         <com.waz.zclient.ui.text.TypefaceEditText

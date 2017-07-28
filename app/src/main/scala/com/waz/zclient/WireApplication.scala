@@ -156,6 +156,7 @@ object WireApplication {
     bind [UserAccountsController]    to new UserAccountsController()
     bind [UiStorage]                 to new UiStorage()
     bind [BackStackNavigator]        to new BackStackNavigator()
+    bind [AppEntryController]        to new AppEntryController()
 
     bind [CursorController]          to new CursorController()
 

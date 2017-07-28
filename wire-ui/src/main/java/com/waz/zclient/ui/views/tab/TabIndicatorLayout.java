@@ -41,7 +41,7 @@ public class TabIndicatorLayout extends LinearLayout implements ViewPager.OnPage
     private int selectedPosition;
 
     private LinearLayout textViewContainer;
-    private int[] anchorPositions;
+    private int[] anchorPositions = null;
     private TabIndicatorView tabIndicatorView;
     private Callback callback;
     private ViewPager viewPager;
@@ -74,7 +74,10 @@ public class TabIndicatorLayout extends LinearLayout implements ViewPager.OnPage
 
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+        if (isInEditMode()) return;
         super.onSizeChanged(w, h, oldw, oldh);
+
+
         int numAnchorPositions = anchorPositions.length;
 
         anchorWidth = 0;

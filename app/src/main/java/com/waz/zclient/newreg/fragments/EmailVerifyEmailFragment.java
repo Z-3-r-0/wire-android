@@ -23,6 +23,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
+import com.waz.zclient.AppEntryController;
+import com.waz.zclient.BaseActivity;
 import com.waz.zclient.R;
 import com.waz.zclient.pages.BaseFragment;
 import com.waz.zclient.ui.utils.TextViewUtils;
@@ -60,7 +63,7 @@ public class EmailVerifyEmailFragment extends BaseFragment<EmailVerifyEmailFragm
                                   }
                               })
                               .start();
-                getStoreFactory().appEntryStore().resendEmail();
+                ((BaseActivity) getActivity()).injectJava(AppEntryController.class).resendActivationEmail();
             }
         });
 
@@ -111,7 +114,7 @@ public class EmailVerifyEmailFragment extends BaseFragment<EmailVerifyEmailFragm
     }
 
     private void goBack() {
-        getStoreFactory().appEntryStore().onBackPressed();
+        ((BaseActivity) getActivity()).injectJava(AppEntryController.class).cancelEmailVerification();
     }
 
     @Override

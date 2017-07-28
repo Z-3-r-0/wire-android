@@ -102,6 +102,7 @@
     <string name="new_reg__default_country">de</string> <!-- consider updating this for every new language -->
     <string name="new_reg_phone_budget_exhausted_title">Too many requests</string>
     <string name="new_reg_phone_budget_exhausted_message">Please try again later.</string>
+    <string name="your_phone_number">Your phone number</string>
 
     <string name="new_reg_phone__title__variant_1">Call, messaging, share.\nIn private or with groups.</string>
     <string name="new_reg_phone__title__variant_2">Private and secure calls,\nmessaging and sharing.</string>

@@ -22,6 +22,7 @@ import com.waz.api.Self;
 import com.waz.zclient.core.controllers.tracking.events.Event;
 import com.waz.zclient.core.stores.api.ZMessagingApiStoreObserver;
 import com.waz.zclient.core.stores.appentry.AppEntryStateCallback;
+import com.waz.zclient.fragments.CountryDialogFragment;
 import com.waz.zclient.newreg.fragments.EmailInvitationFragment;
 import com.waz.zclient.newreg.fragments.EmailRegisterFragment;
 import com.waz.zclient.newreg.fragments.EmailSignInFragment;
@@ -36,7 +37,6 @@ import com.waz.zclient.newreg.fragments.SignUpPhotoFragment;
 import com.waz.zclient.newreg.fragments.VerifyPhoneFragment;
 import com.waz.zclient.newreg.fragments.WelcomeEmailFragment;
 import com.waz.zclient.newreg.fragments.country.CountryController;
-import com.waz.zclient.newreg.fragments.country.CountryDialogFragment;
 
 public class AppEntryTestActivity extends TestActivity implements VerifyPhoneFragment.Container,
                                                                        PhoneRegisterFragment.Container,
@@ -186,10 +186,6 @@ public class AppEntryTestActivity extends TestActivity implements VerifyPhoneFra
         return null;
     }
 
-    @Override
-    public void dismissCountryBox() {
-
-    }
 
     @Override
     public void onInitialized(Self self) {

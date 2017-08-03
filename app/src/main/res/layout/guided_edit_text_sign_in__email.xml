@@ -69,5 +69,6 @@
         android:paddingRight="@dimen/wire__padding__small"
         android:paddingLeft="@dimen/wire__padding__small"
         android:text="@string/profile__guidance__invalid_email"
+        android:visibility="gone"
         />
 </merge>

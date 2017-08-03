@@ -92,8 +92,10 @@ public class GuidedEditText extends LinearLayout {
         isMessageShown = show;
         int duration = getResources().getInteger(R.integer.profile__guidance__animation__duration);
         if (show) {
+            guidanceText.setVisibility(VISIBLE);
             ValueAnimator.ofObject(new HeightEvaluator(guidanceText), 0, guidanceHeight).setDuration(duration).start();
         } else {
+            guidanceText.setVisibility(GONE);
             ValueAnimator.ofObject(new HeightEvaluator(guidanceText), guidanceHeight, 0).setDuration(getResources().getInteger(R.integer.profile__guidance__animation__duration)).start();
         }
     }

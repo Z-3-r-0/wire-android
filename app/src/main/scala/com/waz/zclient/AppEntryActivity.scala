@@ -40,9 +40,10 @@ import com.waz.zclient.core.controllers.tracking.attributes.{Attribute, Registra
 import com.waz.zclient.core.controllers.tracking.events.Event
 import com.waz.zclient.core.controllers.tracking.events.registration.{OpenedPhoneRegistrationFromInviteEvent, SucceededWithRegistrationEvent}
 import com.waz.zclient.core.stores.appentry.AppEntryState
+import com.waz.zclient.fragments.{CountryDialogFragment, SignInFragment}
 import com.waz.zclient.newreg.fragments.SignUpPhotoFragment.UNSPLASH_API_URL
 import com.waz.zclient.newreg.fragments._
-import com.waz.zclient.newreg.fragments.country.{CountryController, CountryDialogFragment}
+import com.waz.zclient.newreg.fragments.country.CountryController
 import com.waz.zclient.preferences.PreferencesController
 import com.waz.zclient.tracking.GlobalTrackingController
 import com.waz.zclient.ui.utils.KeyboardUtils
@@ -136,11 +137,11 @@ class AppEntryActivity extends BaseActivity
       case LoginStage(LoginEmail) =>
         onShowEmailSignInPage()
       case LoginStage(LoginPhone) =>
-        onShowPhoneSignInPage()
+        //onShowPhoneSignInPage()
       case LoginStage(RegisterEmail) =>
-        onShowEmailRegistrationPage()
+        //onShowEmailRegistrationPage()
       case LoginStage(RegisterPhone) =>
-        onShowPhoneRegistrationPage()
+        //onShowPhoneRegistrationPage()
       case DeviceLimitStage =>
         onEnterApplication(true)
       case AddNameStage =>
@@ -349,8 +350,11 @@ class AppEntryActivity extends BaseActivity
   }
 
   def onShowEmailSignInPage(): Unit = {
+    if (getSupportFragmentManager.findFragmentByTag(EmailSignInFragment.TAG) != null) {
+      return
+    }
     val transaction: FragmentTransaction = getSupportFragmentManager.beginTransaction
-    setDefaultAnimation(transaction).replace(R.id.fl_main_content, EmailSignInFragment.newInstance, EmailSignInFragment.TAG).commit
+    setDefaultAnimation(transaction).replace(R.id.fl_main_content, new SignInFragment, EmailSignInFragment.TAG).commit
     enableProgress(false)
     getControllerFactory.getNavigationController.setLeftPage(Page.EMAIL_LOGIN, AppEntryActivity.TAG)
   }
@@ -417,7 +421,13 @@ class AppEntryActivity extends BaseActivity
   }
 
   def openCountryBox(): Unit = {
-    getSupportFragmentManager.beginTransaction.setCustomAnimations(R.anim.fade_in, R.anim.fade_out, R.anim.fade_in, R.anim.fade_out).add(R.id.container__country_box, new CountryDialogFragment, CountryDialogFragment.TAG).addToBackStack(CountryDialogFragment.TAG).commit
+    //getSupportFragmentManager.beginTransaction.setCustomAnimations(R.anim.fade_in, R.anim.fade_out, R.anim.fade_in, R.anim.fade_out).add(R.id.container__country_box, new CountryDialogFragment, CountryDialogFragment.TAG).addToBackStack(CountryDialogFragment.TAG).commit
+    getSupportFragmentManager
+      .beginTransaction
+      .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+      .add(new CountryDialogFragment, CountryDialogFragment.TAG)
+      .addToBackStack(CountryDialogFragment.TAG)
+      .commit
     KeyboardUtils.hideKeyboard(this)
   }
 

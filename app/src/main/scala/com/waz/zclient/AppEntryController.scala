@@ -17,15 +17,15 @@
  */
 package com.waz.zclient
 
-import com.waz.api.ClientRegistrationState
 import com.waz.api.impl._
+import com.waz.api.{ClientRegistrationState, KindOfAccess}
+import com.waz.client.RegistrationClient.ActivateResult.{Failure, PasswordExists}
 import com.waz.model._
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.{EventContext, Signal}
 import com.waz.zclient.AppEntryController._
-import com.waz.zclient.core.stores.appentry.AppEntryError
-import com.waz.zclient.core.stores.appentry.IAppEntryStore.ErrorCallback
+import com.waz.zclient.newreg.fragments.country.Country
 
 import scala.concurrent.Future
 
@@ -42,13 +42,14 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
     userData <- optZms.fold(Signal.const(Option.empty[UserData]))(z => z.usersStorage.optSignal(z.selfUserId))
   } yield (accountData, userData)
 
-  //TODO: remove
   val uiSignInState = Signal[UiSignInState](LoginEmail)
 
   val entryStage = for {
     uiSignInState <- uiSignInState
     (account, user) <- currentAccount
   } yield stateForAccountAndUser(account, user, uiSignInState)
+
+  val phoneCountry = Signal[Country]()
 
   def stateForAccountAndUser(account: Option[AccountData], user: Option[UserData], uiSignInState: UiSignInState): AppEntryStage = {
     account.fold[AppEntryStage] {
@@ -80,24 +81,32 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
     }
   }
 
-  def loginPhone(phone: String, errorCallback: ErrorCallback): Future[Unit] = {
+  def loginPhone(phone: String): Future[Either[EntryError, Unit]] = {
     login(PhoneCredentials(PhoneNumber(phone), Option.empty[ConfirmationCode])) map {
-      case Left(error) => errorCallback.onError(AppEntryError.EMAIL_GENERIC_ERROR)
-      case _ =>
+      case Left(error) => Left(EntryError(error.code, error.label))
+      case _ => Right(())
     }
   }
 
-  def loginEmail(email: String, password: String, errorCallback: ErrorCallback): Future[Unit] = {
+  def loginEmail(email: String, password: String): Future[Either[EntryError, Unit]] = {
     login(EmailCredentials(EmailAddress(email), Some(password))) map {
-      case Left(error) => errorCallback.onError(AppEntryError.EMAIL_GENERIC_ERROR)
-      case _ =>
+      case Left(error) => Left(EntryError(error.code, error.label))
+      case _ => Right(())
     }
   }
 
-  def registerEmail(name: String, email: String, password: String, errorCallback: ErrorCallback): Future[Unit] = {
+  def registerEmail(name: String, email: String, password: String): Future[Either[EntryError, Unit]] = {
     register(EmailCredentials(EmailAddress(email), Some(password)), name) map {
-      case Left(error) => errorCallback.onError(AppEntryError.EMAIL_GENERIC_ERROR)
-      case _ =>
+      case Left(error) => Left(EntryError(error.code, error.label))
+      case _ => Right(())
+    }
+  }
+
+  def registerPhone(phone: String): Future[Either[EntryError, Unit]] = {
+    ZMessaging.currentAccounts.requestPhoneConfirmationCode(PhoneNumber(phone), KindOfAccess.REGISTRATION) map {
+      case PasswordExists => Left(PhoneExistsError)
+      case Failure(error) => Left(EntryError(error.code, error.label))
+      case _ => Right(())
     }
   }
 

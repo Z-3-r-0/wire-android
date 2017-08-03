@@ -25,10 +25,17 @@ public class PasswordValidator implements Validator {
 
     private final AcceptMode acceptMode;
     private final Context context;
+    private int minPasswordLength;
 
     private PasswordValidator(Context context, AcceptMode acceptMode) {
         this.acceptMode = acceptMode;
         this.context = context;
+
+        if (acceptMode == AcceptMode.STRICT) {
+            minPasswordLength = context.getResources().getInteger(R.integer.password_validator__min_password_length);
+        } else {
+            minPasswordLength = context.getResources().getInteger(R.integer.password_validator__min_password_length_legacy);
+        }
     }
 
     public static PasswordValidator instance(Context context) {
@@ -58,12 +65,7 @@ public class PasswordValidator implements Validator {
         }
 
         text = text.trim();
-        int minPasswordLength;
-        if (acceptMode == AcceptMode.STRICT) {
-            minPasswordLength = context.getResources().getInteger(R.integer.password_validator__min_password_length);
-        } else {
-            minPasswordLength = context.getResources().getInteger(R.integer.password_validator__min_password_length_legacy);
-        }
+
         return !TextUtils.isEmpty(text) && text.length() >= minPasswordLength;
     }
 

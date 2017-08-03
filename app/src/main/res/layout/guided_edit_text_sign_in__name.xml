@@ -32,18 +32,18 @@
             android:layout_width="match_parent"
             android:layout_height="@dimen/sign_in__edit_text__height"
             android:maxLines="1"
-            android:inputType="textNoSuggestions|textPassword"
-            android:imeOptions="actionDone"
+            android:inputType="textNoSuggestions|textPersonName"
+            android:imeOptions="actionNext"
+            android:paddingRight="@dimen/wire__padding__small"
+            android:paddingLeft="@dimen/wire__padding__small"
             android:textColorHint="@color/sign_in__edit_text__font_hint_color"
             android:background="@drawable/shape__edit_layout__background__light"
             android:gravity="center_vertical"
-            android:textColor="@color/sign_in__edit_text__font_color"
-            android:hint="@string/profile__password__placeholder"
-            android:maxLength="@integer/framework__max_characters_of_password"
+            android:hint="@string/name_placeholder"
+            android:maxLength="@integer/framework__max_characters_of_input"
             custom:font="@string/wire__typeface__light"
+            android:textColor="@color/text__primary_dark"
             android:textSize="@dimen/sign_in__edit_text__font_size"
-            android:paddingRight="@dimen/wire__padding__small"
-            android:paddingLeft="@dimen/wire__padding__small"
             />
 
         <View
@@ -62,15 +62,13 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:textSize="@dimen/sign_in__guidance_font_size"
-        custom:font="@string/wire__typeface__medium"
+        custom:font="@string/wire__typeface__light"
+        android:textColor="@color/profile_content_color"
         android:textAllCaps="true"
-        android:textColor="@color/text__primary_dark"
         android:paddingTop="@dimen/sign_in__edit_text__guidance__top_margin"
         android:paddingRight="@dimen/wire__padding__small"
         android:paddingLeft="@dimen/wire__padding__small"
-        android:text="@string/profile__password__guidance__tooshort__title"
+        android:text="@string/profile__name__guidance__tooshort__title"
         android:visibility="gone"
         />
-
-
 </merge>

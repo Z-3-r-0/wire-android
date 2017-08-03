@@ -18,7 +18,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 -->
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources>
     <dimen name="circle_icon_button_stroke">0dp</dimen>
     <dimen name="cursor_position_threshold">40dp</dimen>
     <dimen name="cursor_high_speed_threshold">5dp</dimen>
@@ -523,7 +523,7 @@
     <dimen name="sign_in__edit_text__red_dot__right_margin">16dp</dimen>
     <dimen name="sign_in__guidance_font_size">@dimen/framework_confirmation_menu_button_font_size</dimen>
     <dimen name="sign_in_button_container_padding_bottom">16dp</dimen>
-    <dimen name="sign_in__edit_text__font_size">20dp</dimen>
+    <dimen name="sign_in__edit_text__font_size">@dimen/wire__text_size__regular</dimen>
     <dimen name="sign_up__photo__margin_to_buttons">32dp</dimen>
     <dimen name="sign_up__loading_spinner">16dp</dimen>
     <dimen name="profile__guidance__red_dot_width">12dp</dimen>
@@ -732,7 +732,7 @@
 
     <dimen name="progress_dot_spacing_and_width">4dp</dimen>
 
-    <dimen name="reg__tab__height">124dp</dimen>
+    <dimen name="reg__tab__height">224dp</dimen>
     <dimen name="reg__tab__height__signin">224dp</dimen>
     <dimen name="reg__footer_height">12dp</dimen>
     <dimen name="reg_field_margin">8dp</dimen>

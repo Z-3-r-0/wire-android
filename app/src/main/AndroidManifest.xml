@@ -226,7 +226,7 @@
             android:name=".AppEntryActivity"
             android:label="@string/app_name"
             android:launchMode="singleTask"
-            android:theme="@style/Theme.Light"
+            android:theme="@style/Theme.Dark"
             android:windowSoftInputMode="stateHidden|adjustResize">
         </activity>
 

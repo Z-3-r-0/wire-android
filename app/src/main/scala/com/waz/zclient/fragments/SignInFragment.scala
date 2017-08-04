@@ -27,15 +27,14 @@ import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.{FrameLayout, LinearLayout}
 import com.waz.ZLog.ImplicitTag._
 import com.waz.threading.Threading
-import com.waz.utils.events.Signal
-import com.waz.zclient.AppEntryController._
 import com.waz.zclient._
+import com.waz.zclient.controllers.SignInController
+import com.waz.zclient.controllers.SignInController._
 import com.waz.zclient.fragments.SignInFragment._
 import com.waz.zclient.newreg.fragments.TabPages
-import com.waz.zclient.newreg.fragments.country.{Country, CountryController}
+import com.waz.zclient.newreg.fragments.country.Country
 import com.waz.zclient.newreg.views.PhoneConfirmationButton
 import com.waz.zclient.pages.BaseFragment
-import com.waz.zclient.pages.main.profile.validator.{EmailValidator, NameValidator, PasswordValidator}
 import com.waz.zclient.pages.main.profile.views.GuidedEditText
 import com.waz.zclient.ui.text.{TypefaceEditText, TypefaceTextView}
 import com.waz.zclient.ui.utils.KeyboardUtils
@@ -43,11 +42,10 @@ import com.waz.zclient.ui.views.tab.TabIndicatorLayout
 import com.waz.zclient.ui.views.tab.TabIndicatorLayout.Callback
 import com.waz.zclient.utils.ViewUtils
 
-import scala.concurrent.Future
+class SignInFragment extends BaseFragment[Container] with FragmentHelper with View.OnClickListener {
 
-class SignInFragment extends BaseFragment[Container] with FragmentHelper with View.OnClickListener with CountryController.Observer{
+  lazy val signInController = inject[SignInController]
 
-  lazy val appEntryController = inject[AppEntryController]
   lazy val container = getView.findViewById(R.id.sign_in_container).asInstanceOf[FrameLayout]
   lazy val scenes = Array[Scene](
     Scene.getSceneForLayout(container, R.layout.sign_in_email_scene, getContext),
@@ -57,43 +55,12 @@ class SignInFragment extends BaseFragment[Container] with FragmentHelper with Vi
 
   lazy val phoneButton = findById[TypefaceTextView](getView, R.id.ttv__new_reg__sign_in__go_to__phone)
   lazy val emailButton = findById[TypefaceTextView](getView, R.id.ttv__new_reg__sign_in__go_to__email)
-  lazy val tabSelector = getView.findViewById(R.id.til__app_entry).asInstanceOf[TabIndicatorLayout]
+  lazy val tabSelector = findById[TabIndicatorLayout](getView, R.id.til__app_entry)
 
-  //TODO: Move this into a controller
-  private val email = Signal("")
-  private val password = Signal("")
-  private val name = Signal("")
-  private val phone = Signal("")
-  private var country: Country = null
-
-  lazy val emailTextWatch = TextListener(email ! _)
-  lazy val passwordTextWatch = TextListener(password ! _)
-  lazy val nameTextWatch = TextListener(name ! _)
-  lazy val phoneTextWatch = TextListener(phone ! _)
-
-  lazy val countryController = new CountryController(getContext)
-
-  lazy val nameValidator = new NameValidator()
-  lazy val emailValidator = EmailValidator.newInstance()
-  lazy val passwordValidator = PasswordValidator.instance(getActivity)
-  lazy val legacyPasswordValidator = PasswordValidator.instanceLegacy(getActivity)
-
-  lazy val isValid: Signal[Boolean] = appEntryController.uiSignInState.flatMap {
-    case LoginEmail =>
-      for {
-        email <- email
-        password <- password
-      } yield emailValidator.validate(email) && legacyPasswordValidator.validate(password)
-    case RegisterEmail =>
-      for {
-        name <- name
-        email <- email
-        password <- password
-      } yield nameValidator.validate(name) && emailValidator.validate(email) && passwordValidator.validate(password)
-    case LoginPhone | RegisterPhone =>
-      phone.map(_.nonEmpty)
-    case _ => Signal.empty[Boolean]
-  }
+  lazy val emailTextWatch = TextListener(signInController.email ! _)
+  lazy val passwordTextWatch = TextListener(signInController.password ! _)
+  lazy val nameTextWatch = TextListener(signInController.name ! _)
+  lazy val phoneTextWatch = TextListener(signInController.phone ! _)
 
   def nameField = Option(findById[GuidedEditText](getView, R.id.get__sign_in__name))
 
@@ -110,28 +77,28 @@ class SignInFragment extends BaseFragment[Container] with FragmentHelper with Vi
   def setupViews(): Unit = {
 
     emailField.foreach { field =>
-      field.setValidator(emailValidator)
+      field.setValidator(signInController.emailValidator)
       field.setResource(R.layout.guided_edit_text_sign_in__email)
-      field.setText(email.currentValue.getOrElse(""))
+      field.setText(signInController.email.currentValue.getOrElse(""))
       field.getEditText.addTextChangedListener(emailTextWatch)
     }
 
     passwordField.foreach { field =>
-      field.setValidator(passwordValidator)
+      field.setValidator(signInController.passwordValidator)
       field.setResource(R.layout.guided_edit_text_sign_in__password)
-      field.setText(password.currentValue.getOrElse(""))
+      field.setText(signInController.password.currentValue.getOrElse(""))
       field.getEditText.addTextChangedListener(passwordTextWatch)
     }
 
     nameField.foreach { field =>
-      field.setValidator(nameValidator)
+      field.setValidator(signInController.nameValidator)
       field.setResource(R.layout.guided_edit_text_sign_in__name)
-      field.setText(name.currentValue.getOrElse(""))
+      field.setText(signInController.name.currentValue.getOrElse(""))
       field.getEditText.addTextChangedListener(nameTextWatch)
     }
 
     phoneField.foreach { field =>
-      field.setText(phone.currentValue.getOrElse(""))
+      field.setText(signInController.phone.currentValue.getOrElse(""))
       field.addTextChangedListener(phoneTextWatch)
     }
 
@@ -139,7 +106,7 @@ class SignInFragment extends BaseFragment[Container] with FragmentHelper with Vi
     countryCodeText.foreach(_.setOnClickListener(this))
     confirmationButton.foreach(_.setOnClickListener(this))
     confirmationButton.foreach(_.setAccentColor(Color.WHITE))
-    setConfirmationButtonActive(isValid.currentValue.getOrElse(false))
+    setConfirmationButtonActive(signInController.isValid.currentValue.getOrElse(false))
   }
 
   override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle) =
@@ -160,16 +127,14 @@ class SignInFragment extends BaseFragment[Container] with FragmentHelper with Vi
         pos match  {
           case TabPages.CREATE_ACCOUNT =>
             tabSelector.setSelected(TabPages.CREATE_ACCOUNT)
-            appEntryController.uiSignInState.mutate {
-              case LoginEmail => RegisterEmail
-              case LoginPhone => RegisterPhone
+            signInController.uiSignInState.mutate {
+              case SignInMethod(Login, x) => SignInMethod(Register, x)
               case other => other
             }
           case TabPages.SIGN_IN =>
             tabSelector.setSelected(TabPages.SIGN_IN)
-            appEntryController.uiSignInState.mutate {
-              case RegisterEmail => LoginEmail
-              case RegisterPhone => LoginPhone
+            signInController.uiSignInState.mutate {
+              case SignInMethod(Register, x) => SignInMethod(Login, x)
               case other => other
             }
           case _ =>
@@ -177,35 +142,31 @@ class SignInFragment extends BaseFragment[Container] with FragmentHelper with Vi
       }
     })
 
-    appEntryController.uiSignInState.onUi { state =>
+    signInController.uiSignInState.onUi { state =>
       state match {
-        case LoginEmail =>
+        case SignInMethod(Login, Email) =>
           TransitionManager.go(scenes(0), transition)
           setEmailButtonSelected()
           emailField.foreach(_.requestFocus())
-        case LoginPhone =>
+        case SignInMethod(Login, Phone) =>
           TransitionManager.go(scenes(1), transition)
           setPhoneButtonSelected()
           phoneField.foreach(_.requestFocus())
-        case RegisterEmail =>
+        case SignInMethod(Register, Email) =>
           TransitionManager.go(scenes(2), transition)
           setEmailButtonSelected()
           nameField.foreach(_.requestFocus())
-        case RegisterPhone =>
+        case SignInMethod(Register, Phone) =>
           TransitionManager.go(scenes(3), transition)
           setPhoneButtonSelected()
           phoneField.foreach(_.requestFocus())
       }
       setupViews()
-      onCountryHasChanged(country)
+      signInController.phoneCountry.currentValue.foreach{ onCountryHasChanged }
     }
 
-    appEntryController.phoneCountry.onUi { countryController.setCountry }
-
-    isValid.onUi { setConfirmationButtonActive }
-
-    countryController.addObserver(this)
-    countryController.setCountry(countryController.getCountryFromCode("+351"))//TODO: Default Country?
+    signInController.isValid.onUi { setConfirmationButtonActive }
+    signInController.phoneCountry.onUi { onCountryHasChanged }
   }
 
   private def setConfirmationButtonActive(active: Boolean): Unit = {
@@ -232,16 +193,14 @@ class SignInFragment extends BaseFragment[Container] with FragmentHelper with Vi
   override def onClick(v: View) = {
     v.getId match {
       case R.id.ttv__new_reg__sign_in__go_to__email =>
-        appEntryController.uiSignInState.mutate {
-          case RegisterPhone => RegisterEmail
-          case LoginPhone => LoginEmail
+        signInController.uiSignInState.mutate {
+          case SignInMethod(x, Phone) => SignInMethod(x, Email)
           case other => other
         }
 
       case R.id.ttv__new_reg__sign_in__go_to__phone =>
-        appEntryController.uiSignInState.mutate {
-          case RegisterEmail => RegisterPhone
-          case LoginEmail => LoginPhone
+        signInController.uiSignInState.mutate {
+          case SignInMethod(x, Email) => SignInMethod(x, Phone)
           case other => other
         }
 
@@ -252,35 +211,7 @@ class SignInFragment extends BaseFragment[Container] with FragmentHelper with Vi
         implicit val ec = Threading.Ui
         KeyboardUtils.closeKeyboardIfShown(getActivity)
         getActivity.asInstanceOf[AppEntryActivity].enableProgress(true)
-
-        val signFuture = appEntryController.uiSignInState.currentValue match {
-          case Some(LoginEmail) =>
-            for{
-              email <- email.head
-              password <- password.head
-              response <- appEntryController.loginEmail(email, password)
-            } yield response
-          case Some(LoginPhone) =>
-            for{
-              phone <- phone.head
-              response <- appEntryController.loginPhone(phone)
-            } yield response
-          case Some(RegisterEmail) =>
-            for{
-              name <- name.head
-              email <- email.head
-              password <- password.head
-              response <- appEntryController.registerEmail(name, email, password)
-            } yield response
-          case Some(RegisterPhone) =>
-            for{
-              phone <- phone.head
-              response <- appEntryController.registerPhone(phone)
-            } yield response
-          case _ => Future.successful(Left(UnknownError))
-        }
-
-        signFuture.map {
+        signInController.attemptSignIn().map {
           case Left(error) =>
             getActivity.asInstanceOf[AppEntryActivity].enableProgress(false)
             showError(error)
@@ -292,8 +223,7 @@ class SignInFragment extends BaseFragment[Container] with FragmentHelper with Vi
     }
   }
 
-  override def onCountryHasChanged(country: Country): Unit = {
-    this.country = country
+  def onCountryHasChanged(country: Country): Unit = {
     countryCodeText.foreach(_.setText(String.format("+%s", country.getCountryCode)) )
     countryNameText.foreach(_.setText(country.getName))
   }

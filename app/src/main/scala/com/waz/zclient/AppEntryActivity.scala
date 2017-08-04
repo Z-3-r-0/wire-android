@@ -17,7 +17,7 @@
  */
 package com.waz.zclient
 
-import android.content.Intent
+import android.content.{DialogInterface, Intent}
 import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.net.Uri
@@ -32,7 +32,8 @@ import com.waz.ZLog.ImplicitTag._
 import com.waz.api.{BitmapCallback, ImageAsset, ImageAssetFactory, LoadHandle}
 import com.waz.service.{AccountsService, ZMessaging}
 import com.waz.utils.wrappers.AndroidURIUtil
-import com.waz.zclient.AppEntryController.{LoginEmail, _}
+import com.waz.zclient.AppEntryController._
+import com.waz.zclient.appentry.{PhoneSetNameFragment, VerifyPhoneFragment}
 import com.waz.zclient.controllers.navigation.{NavigationControllerObserver, Page}
 import com.waz.zclient.controllers.tracking.screens.ApplicationScreen
 import com.waz.zclient.core.api.scala.AppEntryStore
@@ -129,19 +130,11 @@ class AppEntryActivity extends BaseActivity
       })
     }
 
-    appEntryController.uiSignInState ! LoginEmail
-
     appEntryController.entryStage.onUi {
       case EnterAppStage =>
         onEnterApplication(false)
-      case LoginStage(LoginEmail) =>
+      case LoginStage =>
         onShowEmailSignInPage()
-      case LoginStage(LoginPhone) =>
-        //onShowPhoneSignInPage()
-      case LoginStage(RegisterEmail) =>
-        //onShowEmailRegistrationPage()
-      case LoginStage(RegisterPhone) =>
-        //onShowPhoneRegistrationPage()
       case DeviceLimitStage =>
         onEnterApplication(true)
       case AddNameStage =>
@@ -151,7 +144,7 @@ class AppEntryActivity extends BaseActivity
       case VerifyEmailStage =>
         onShowEmailVerifyEmailPage()
       case VerifyPhoneStage =>
-        onShowPhoneVerifyEmailPage()
+        onShowPhoneCodePage()
       case _ =>
     }
   }
@@ -489,4 +482,17 @@ class AppEntryActivity extends BaseActivity
       case _ =>
     }
   }
+
+  def showError(entryError: EntryError, okCallback: => Unit = {}): Unit =
+    ViewUtils.showAlertDialog(this,
+      entryError.headerResource,
+      entryError.bodyResource,
+      R.string.reg__phone_alert__button,
+      new DialogInterface.OnClickListener() {
+        def onClick(dialog: DialogInterface, which: Int): Unit = {
+          dialog.dismiss()
+          okCallback
+        }
+      },
+      false)
 }

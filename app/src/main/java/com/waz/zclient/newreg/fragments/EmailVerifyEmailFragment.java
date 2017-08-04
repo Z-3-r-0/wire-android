@@ -114,7 +114,7 @@ public class EmailVerifyEmailFragment extends BaseFragment<EmailVerifyEmailFragm
     }
 
     private void goBack() {
-        ((BaseActivity) getActivity()).injectJava(AppEntryController.class).cancelEmailVerification();
+        ((BaseActivity) getActivity()).injectJava(AppEntryController.class).cancelVerification();
     }
 
     @Override

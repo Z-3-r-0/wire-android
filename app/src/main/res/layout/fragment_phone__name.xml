@@ -53,6 +53,7 @@
             android:text="@string/enter_name"
             custom:font="@string/wire__typeface__medium"
             android:textSize="@dimen/wire__text_size__regular"
+            android:textColor="@color/text__primary_dark"
             />
 
 
@@ -80,6 +81,7 @@
                 android:textAllCaps="true"
                 android:hint="@string/enter_name_hint"
                 android:textColorHint="@color/new_reg__phone_number_text_color_hint"
+                android:textColor="@color/text__primary_dark"
                 android:textSize="@dimen/wire__text_size__regular"
                 custom:font="@string/wire__typeface__light"
                 />

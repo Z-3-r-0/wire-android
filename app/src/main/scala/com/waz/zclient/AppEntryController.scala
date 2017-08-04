@@ -17,15 +17,18 @@
  */
 package com.waz.zclient
 
-import com.waz.api.impl._
+import com.waz.ZLog
+import com.waz.ZLog.ImplicitTag._
 import com.waz.api.{ClientRegistrationState, KindOfAccess}
+import com.waz.api.impl._
+import com.waz.client.RegistrationClient
 import com.waz.client.RegistrationClient.ActivateResult.{Failure, PasswordExists}
 import com.waz.model._
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.{EventContext, Signal}
 import com.waz.zclient.AppEntryController._
-import com.waz.zclient.newreg.fragments.country.Country
+import com.waz.zclient.controllers.SignInController._
 
 import scala.concurrent.Future
 
@@ -34,7 +37,7 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
 
   implicit val ec = Threading.Background
 
-  val optZms = inject[Signal[Option[ZMessaging]]]
+  lazy val optZms = inject[Signal[Option[ZMessaging]]]
 
   val currentAccount = for {
     accountData <- ZMessaging.currentAccounts.activeAccount
@@ -42,18 +45,16 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
     userData <- optZms.fold(Signal.const(Option.empty[UserData]))(z => z.usersStorage.optSignal(z.selfUserId))
   } yield (accountData, userData)
 
-  val uiSignInState = Signal[UiSignInState](LoginEmail)
-
   val entryStage = for {
-    uiSignInState <- uiSignInState
     (account, user) <- currentAccount
-  } yield stateForAccountAndUser(account, user, uiSignInState)
+  } yield stateForAccountAndUser(account, user)
 
-  val phoneCountry = Signal[Country]()
+  currentAccount{ acc => ZLog.debug(s"Current account: $acc")}
+  entryStage{ stage => ZLog.debug(s"Current stage: $stage")}
 
-  def stateForAccountAndUser(account: Option[AccountData], user: Option[UserData], uiSignInState: UiSignInState): AppEntryStage = {
+  def stateForAccountAndUser(account: Option[AccountData], user: Option[UserData]): AppEntryStage = {
     account.fold[AppEntryStage] {
-      LoginStage(uiSignInState)
+      LoginStage
     } { accountData =>
       if (accountData.clientRegState == ClientRegistrationState.LIMIT_REACHED) {
         return DeviceLimitStage
@@ -65,14 +66,14 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
         if (accountData.pendingPhone.isDefined) {
           return VerifyPhoneStage
         }
-        return LoginStage(uiSignInState) //Unverified account with no pending stuff
+        return LoginStage //Unverified account with no pending stuff
+      }
+      if (accountData.regWaiting) {
+        return AddNameStage
       }
       user.fold[AppEntryStage] {
         Unknown //Has account but has no user, should be temporary
       } { userData =>
-        if (userData.name.isEmpty) {
-          return AddNameStage
-        }
         if (userData.picture.isEmpty) {
           return AddPictureStage
         }
@@ -82,71 +83,91 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
   }
 
   def loginPhone(phone: String): Future[Either[EntryError, Unit]] = {
-    login(PhoneCredentials(PhoneNumber(phone), Option.empty[ConfirmationCode])) map {
-      case Left(error) => Left(EntryError(error.code, error.label))
-      case _ => Right(())
+    ZMessaging.currentAccounts.loginPhone(PhoneNumber(phone)).map {
+      case Left(error) => Left(EntryError(error.code, error.label, SignInMethod(Login, Phone)))
+      case Right(_) => Right(())
     }
   }
 
   def loginEmail(email: String, password: String): Future[Either[EntryError, Unit]] = {
-    login(EmailCredentials(EmailAddress(email), Some(password))) map {
-      case Left(error) => Left(EntryError(error.code, error.label))
+    ZMessaging.currentAccounts.loginEmail(EmailAddress(email), password).map {
+      case Left(error) => Left(EntryError(error.code, error.label, SignInMethod(Login, Email)))
       case _ => Right(())
     }
   }
 
   def registerEmail(name: String, email: String, password: String): Future[Either[EntryError, Unit]] = {
-    register(EmailCredentials(EmailAddress(email), Some(password)), name) map {
-      case Left(error) => Left(EntryError(error.code, error.label))
+    ZMessaging.currentAccounts.registerEmail(EmailAddress(email), password, name).map {
+      case Left(error) => Left(EntryError(error.code, error.label, SignInMethod(Register, Email)))
       case _ => Right(())
     }
   }
 
   def registerPhone(phone: String): Future[Either[EntryError, Unit]] = {
-    ZMessaging.currentAccounts.requestPhoneConfirmationCode(PhoneNumber(phone), KindOfAccess.REGISTRATION) map {
-      case PasswordExists => Left(PhoneExistsError)
-      case Failure(error) => Left(EntryError(error.code, error.label))
+    ZMessaging.currentAccounts.register(PhoneCredentials(PhoneNumber(phone), None), None, AccentColor()).map {
+      case Left(error) => Left(EntryError(error.code, error.label, SignInMethod(Register, Phone)))
       case _ => Right(())
     }
   }
 
-  def login(credentials: Credentials): Future[Either[ErrorResponse, AccountData]] = {
-    ZMessaging.currentAccounts.login(credentials)
+  def verifyPhone(code: String): Future[Either[EntryError, Unit]] = {
+    ZMessaging.currentAccounts.activeAccount.head.flatMap {
+      case Some(accountData) if accountData.pendingPhone.isDefined && accountData.regWaiting =>
+        ZMessaging.currentAccounts.activatePhoneOnRegister(accountData.pendingPhone.get, ConfirmationCode(code)).map {
+          case Left(error) => Left(EntryError(error.code, error.label, SignInMethod(Register, Phone)))
+          case _ => Right(())
+        }
+      case Some(accountData) if accountData.pendingPhone.isDefined =>
+        ZMessaging.currentAccounts.loginPhone(accountData.pendingPhone.get, ConfirmationCode(code)).map {
+          case Left(error) => Left(EntryError(error.code, error.label, SignInMethod(Login, Phone)))
+          case _ => Right(())
+        }
+      case _ => Future.successful(Left(GenericRegisterPhoneError))
+    }
   }
 
-  def register(credentials: Credentials, name: String): Future[Either[ErrorResponse, AccountData]] = {
-    ZMessaging.currentAccounts.register(credentials, name, AccentColors.defaultColor)
+  def registerName(name: String): Future[Either[EntryError, Unit]] = {
+    ZMessaging.currentAccounts.activeAccount.head.flatMap {
+      case Some(accountData) if accountData.phone.isDefined && accountData.regWaiting && accountData.code.isDefined =>
+        ZMessaging.currentAccounts.registerNameOnPhone(accountData.phone.get, ConfirmationCode(accountData.code.get), name).map {
+          case Left(error) => Left(EntryError(error.code, error.label, SignInMethod(Register, Phone)))
+          case _ => Right(())
+        }
+      case _ => Future.successful(Left(GenericRegisterPhoneError))
+    }
   }
 
   def resendActivationEmail(): Unit = {
-    ZMessaging.currentAccounts.getActiveAccount.map {
-      _.flatMap(_.pendingEmail).foreach(ZMessaging.currentAccounts.requestVerificationEmail)
+    //TODO: do.
+  }
+
+  //TODO: register and login
+  def resendActivationPhoneCode(shouldCall: Boolean = false): Future[Either[EntryError, Unit]] = {
+
+    def requestCode(accountData: AccountData, kindOfAccess: KindOfAccess): Future[RegistrationClient.ActivateResult] = {
+      if (shouldCall)
+        ZMessaging.currentAccounts.requestPhoneConfirmationCall(accountData.pendingPhone.get, kindOfAccess).future
+      else
+        ZMessaging.currentAccounts.requestPhoneConfirmationCode(accountData.pendingPhone.get, kindOfAccess).future
     }
 
+    ZMessaging.currentAccounts.getActiveAccount.flatMap {
+      case Some(account) if account.pendingPhone.isDefined =>
+        val kindOfAccess = if (account.regWaiting) KindOfAccess.REGISTRATION else KindOfAccess.LOGIN_IF_NO_PASSWD
+        requestCode(account, kindOfAccess).map {
+          case Failure(error) =>
+            Left(EntryError(error.code, error.label, SignInMethod(Register, Phone)))
+          case PasswordExists =>
+            val validationType = if (account.regWaiting) Register else Login
+            Left(EntryError(ErrorResponse.PasswordExists.code, ErrorResponse.PasswordExists.label, SignInMethod(validationType, Phone)))
+          case _ =>
+            Right(())
+        }
+      case _ => Future.successful(Left(GenericRegisterPhoneError))
+    }
   }
 
-  //For Java access
-  def goToLoginEmail(): Unit = {
-    uiSignInState ! LoginEmail
-  }
-
-  def goToLoginPhone(): Unit = {
-    uiSignInState ! LoginPhone
-  }
-
-  def goToRegisterEmail(): Unit = {
-    uiSignInState ! RegisterEmail
-  }
-
-  def cancelEmailVerification(): Unit = {
-    ZMessaging.currentAccounts.logout(true)
-    uiSignInState ! RegisterEmail
-  }
-
-  def cancelPhoneVerification(): Unit = {
-    ZMessaging.currentAccounts.logout(true)
-    uiSignInState ! RegisterPhone
-  }
+  def cancelVerification(): Unit = ZMessaging.currentAccounts.logout(true)
 
 }
 
@@ -159,12 +180,5 @@ object AppEntryController {
   object AddPictureStage  extends AppEntryStage
   object VerifyEmailStage extends AppEntryStage
   object VerifyPhoneStage extends AppEntryStage
-
-  case class LoginStage(uiSignInState: UiSignInState) extends AppEntryStage
-
-  trait UiSignInState
-  object LoginEmail    extends UiSignInState
-  object LoginPhone    extends UiSignInState
-  object RegisterEmail extends UiSignInState
-  object RegisterPhone extends UiSignInState
+  object LoginStage       extends AppEntryStage
 }

@@ -19,6 +19,8 @@ package com.waz.zclient;
 
 import com.waz.api.ImageAsset;
 import com.waz.api.Self;
+import com.waz.zclient.appentry.PhoneSetNameFragment;
+import com.waz.zclient.appentry.VerifyPhoneFragment;
 import com.waz.zclient.core.controllers.tracking.events.Event;
 import com.waz.zclient.core.stores.api.ZMessagingApiStoreObserver;
 import com.waz.zclient.core.stores.appentry.AppEntryStateCallback;
@@ -30,13 +32,14 @@ import com.waz.zclient.newreg.fragments.EmailVerifyEmailFragment;
 import com.waz.zclient.newreg.fragments.PhoneAddEmailFragment;
 import com.waz.zclient.newreg.fragments.PhoneInvitationFragment;
 import com.waz.zclient.newreg.fragments.PhoneRegisterFragment;
-import com.waz.zclient.newreg.fragments.PhoneSetNameFragment;
 import com.waz.zclient.newreg.fragments.PhoneSignInFragment;
 import com.waz.zclient.newreg.fragments.PhoneVerifyEmailFragment;
 import com.waz.zclient.newreg.fragments.SignUpPhotoFragment;
-import com.waz.zclient.newreg.fragments.VerifyPhoneFragment;
 import com.waz.zclient.newreg.fragments.WelcomeEmailFragment;
 import com.waz.zclient.newreg.fragments.country.CountryController;
+
+import scala.Function0;
+import scala.runtime.BoxedUnit;
 
 public class AppEntryTestActivity extends TestActivity implements VerifyPhoneFragment.Container,
                                                                        PhoneRegisterFragment.Container,
@@ -210,6 +213,16 @@ public class AppEntryTestActivity extends TestActivity implements VerifyPhoneFra
     @Override
     public ImageAsset getUnsplashImageAsset() {
         return null;
+    }
+
+    @Override
+    public void showError(EntryError entryError, Function0<BoxedUnit> okCallback) {
+
+    }
+
+    @Override
+    public void showError$default$2() {
+
     }
 }
 

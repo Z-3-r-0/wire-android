@@ -100,12 +100,12 @@
                 android:id="@+id/ttv__info_text"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/activation_code_info_manual"
-                custom:font="@string/wire__typeface__light"
-                android:textSize="@dimen/wire__text_size__regular"
                 android:layout_gravity="center"
                 android:gravity="center"
-                />
+                android:text="@string/activation_code_info_manual"
+                android:textColor="@color/text__primary_dark"
+                android:textSize="@dimen/wire__text_size__regular"
+                custom:font="@string/wire__typeface__light"/>
 
             <!-- phone input field -->
             <FrameLayout
@@ -121,16 +121,16 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
-                    android:gravity="center"
-                    android:minWidth="1dp"
-                    android:maxLength="6"
                     android:background="@null"
-                    android:inputType="numberSigned"
+                    android:gravity="center"
                     android:imeOptions="actionDone"
+                    android:inputType="numberSigned"
+                    android:maxLength="6"
+                    android:minWidth="1dp"
+                    android:textColor="@color/text__primary_dark"
                     android:textColorHint="@color/new_reg__phone_number_text_color_hint"
                     android:textSize="@dimen/new_reg__phone_number__hint_text_size"
-                    custom:font="@string/wire__typeface__light"
-                    />
+                    custom:font="@string/wire__typeface__light"/>
 
 
                 <com.waz.zclient.newreg.views.PhoneConfirmationButton

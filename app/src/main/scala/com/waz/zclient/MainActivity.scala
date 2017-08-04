@@ -27,7 +27,6 @@ import android.os.{Build, Bundle, Handler}
 import android.support.v4.app.Fragment
 import android.text.TextUtils
 import com.localytics.android.Localytics
-import com.waz.ZLog
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog.{error, info, warn}
 import com.waz.api.{NetworkMode, _}
@@ -148,7 +147,9 @@ class MainActivity extends BaseActivity
     appEntryController.entryStage.onUi {
       case EnterAppStage => onUserLoggedInAndVerified(getStoreFactory.getZMessagingApiStore.getApi.getSelf)
       case DeviceLimitStage => manageDevices()
-      case Unknown => error("Unknown state")
+      case Unknown =>
+        //onUserLoggedInAndVerified(getStoreFactory.getZMessagingApiStore.getApi.getSelf)
+        error("Unknown state")
       case _ => openSignUpPage()
     }
 

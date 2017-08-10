@@ -37,7 +37,7 @@ object PhoneSetNameFragment {
   def newInstance: PhoneSetNameFragment = new PhoneSetNameFragment
 
   trait Container {
-    def enableProgress(enable: Boolean)
+    def enableProgress(enable: Boolean): Unit
     def getAccentColor: Int
     def showError(entryError: EntryError, okCallback: => Unit = {}): Unit
   }

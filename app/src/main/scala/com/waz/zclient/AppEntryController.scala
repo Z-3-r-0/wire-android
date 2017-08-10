@@ -19,10 +19,10 @@ package com.waz.zclient
 
 import com.waz.ZLog
 import com.waz.ZLog.ImplicitTag._
-import com.waz.api.{ClientRegistrationState, KindOfAccess}
 import com.waz.api.impl._
-import com.waz.client.RegistrationClient
-import com.waz.client.RegistrationClient.ActivateResult.{Failure, PasswordExists}
+import com.waz.api.{ClientRegistrationState, KindOfAccess}
+import com.waz.client.RegistrationClientImpl.ActivateResult
+import com.waz.client.RegistrationClientImpl.ActivateResult.{Failure, PasswordExists}
 import com.waz.model._
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
@@ -51,6 +51,7 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
 
   currentAccount{ acc => ZLog.debug(s"Current account: $acc")}
   entryStage{ stage => ZLog.debug(s"Current stage: $stage")}
+  optZms{ zms => zms.foreach(z => ZLog.debug(s"Current zms user: ${z.selfUserId}"))}
 
   def stateForAccountAndUser(account: Option[AccountData], user: Option[UserData]): AppEntryStage = {
     account.fold[AppEntryStage] {
@@ -66,13 +67,13 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
         if (accountData.pendingPhone.isDefined) {
           return VerifyPhoneStage
         }
-        return LoginStage //Unverified account with no pending stuff
+        return LoginStage
       }
       if (accountData.regWaiting) {
         return AddNameStage
       }
       user.fold[AppEntryStage] {
-        Unknown //Has account but has no user, should be temporary
+        EnterAppStage
       } { userData =>
         if (userData.picture.isEmpty) {
           return AddPictureStage
@@ -118,9 +119,9 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
           case _ => Right(())
         }
       case Some(accountData) if accountData.pendingPhone.isDefined =>
-        ZMessaging.currentAccounts.loginPhone(accountData.pendingPhone.get, ConfirmationCode(code)).map {
-          case Left(error) => Left(EntryError(error.code, error.label, SignInMethod(Login, Phone)))
-          case _ => Right(())
+        ZMessaging.currentAccounts.loginPhone(accountData.pendingPhone.get, ConfirmationCode(code)).flatMap {
+          case Left(error) => Future.successful(Left(EntryError(error.code, error.label, SignInMethod(Login, Phone))))
+          case _ => ZMessaging.currentAccounts.switchAccount(accountData.id).map(_ => Right(()))
         }
       case _ => Future.successful(Left(GenericRegisterPhoneError))
     }
@@ -129,22 +130,26 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
   def registerName(name: String): Future[Either[EntryError, Unit]] = {
     ZMessaging.currentAccounts.activeAccount.head.flatMap {
       case Some(accountData) if accountData.phone.isDefined && accountData.regWaiting && accountData.code.isDefined =>
-        ZMessaging.currentAccounts.registerNameOnPhone(accountData.phone.get, ConfirmationCode(accountData.code.get), name).map {
-          case Left(error) => Left(EntryError(error.code, error.label, SignInMethod(Register, Phone)))
-          case _ => Right(())
+        ZMessaging.currentAccounts.registerNameOnPhone(accountData.phone.get, ConfirmationCode(accountData.code.get), name).flatMap {
+          case Left(error) => Future.successful(Left(EntryError(error.code, error.label, SignInMethod(Register, Phone))))
+          case _ => ZMessaging.currentAccounts.switchAccount(accountData.id).map(_ => Right(()))
         }
       case _ => Future.successful(Left(GenericRegisterPhoneError))
     }
   }
 
   def resendActivationEmail(): Unit = {
-    //TODO: do.
+    ZMessaging.currentAccounts.getActiveAccount.map {
+      case Some(account) if account.pendingEmail.isDefined =>
+        ZMessaging.currentAccounts.requestVerificationEmail(account.pendingEmail.get)
+      case _ =>
+    }
   }
 
   //TODO: register and login
   def resendActivationPhoneCode(shouldCall: Boolean = false): Future[Either[EntryError, Unit]] = {
 
-    def requestCode(accountData: AccountData, kindOfAccess: KindOfAccess): Future[RegistrationClient.ActivateResult] = {
+    def requestCode(accountData: AccountData, kindOfAccess: KindOfAccess): Future[ActivateResult] = {
       if (shouldCall)
         ZMessaging.currentAccounts.requestPhoneConfirmationCall(accountData.pendingPhone.get, kindOfAccess).future
       else

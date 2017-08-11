@@ -83,7 +83,7 @@ class EmailVerifyEmailFragment extends BaseFragment[EmailVerifyEmailFragment.Con
       case R.id.ttv__pending_email__resend =>
         didntGetEmailTextView.animate.alpha(0).start()
         resendTextView.animate.alpha(0).withEndAction(new Runnable() {
-          def run() {
+          def run(): Unit = {
             resendTextView.setEnabled(false)
           }
         }).start()

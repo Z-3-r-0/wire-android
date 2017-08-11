@@ -107,7 +107,7 @@ public class PhoneAddEmailFragment extends BaseFragment<PhoneAddEmailFragment.Co
         onAccentColorHasChanged(getContainer().getAccentColor());
 
         getControllerFactory().getVerificationController().finishVerification();
-        getControllerFactory().getGlobalLayoutController().setSoftInputModeForPage(Page.PHONE_REGISTRATION);
+        getControllerFactory().getGlobalLayoutController().setSoftInputModeForPage(Page.PHONE_REGISTRATION_ADD_NAME);
         KeyboardUtils.showKeyboard(getActivity());
         updateState();
     }

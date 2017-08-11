@@ -115,7 +115,7 @@ class VerifyPhoneFragment extends BaseFragment[VerifyPhoneFragment.Container] wi
     phoneConfirmationButton.setAccentColor(color)
     resendCodeButton.setTextColor(color)
     textViewInfo.setTextColor(color)
-    getControllerFactory.getGlobalLayoutController.setSoftInputModeForPage(Page.PHONE_REGISTRATION)
+    getControllerFactory.getGlobalLayoutController.setSoftInputModeForPage(Page.PHONE_VERIFY_CODE)
     KeyboardUtils.showKeyboard(getActivity)
     startResendCodeTimer()
   }
@@ -149,6 +149,7 @@ class VerifyPhoneFragment extends BaseFragment[VerifyPhoneFragment.Container] wi
   private def onPhoneNumberLoaded(phone: String): Unit = {
     val text = String.format(getResources.getString(R.string.activation_code_info_manual), phone)
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N)
+      //noinspection ScalaDeprecation
       textViewInfo.setText(Html.fromHtml(text))
     else
       textViewInfo.setText(Html.fromHtml(text, Html.FROM_HTML_MODE_LEGACY))

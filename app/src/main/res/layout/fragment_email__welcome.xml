@@ -63,16 +63,16 @@
         >
 
         <com.waz.zclient.ui.text.TypefaceTextView
+            android:id="@+id/typefaceTextView2"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="left|bottom"
-            android:gravity="bottom"
             android:ellipsize="none"
+            android:gravity="bottom"
             android:text="@string/welcome__slogan"
             android:textColor="@color/first_time__welcome__title_color"
             android:textSize="@dimen/first_time__welcome__title_max_font_size"
-            custom:font="@string/wire__typeface__thin"
-            />
+            custom:font="@string/wire__typeface__thin"/>
 
         <com.waz.zclient.ui.views.ZetaButton
             android:id="@+id/zb__welcome__create_account"

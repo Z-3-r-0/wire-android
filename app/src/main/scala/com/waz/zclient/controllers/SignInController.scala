@@ -18,6 +18,7 @@
 package com.waz.zclient.controllers
 
 import android.content.Context
+import com.waz.api.Invitations.{EmailAddressResponse, PhoneNumberResponse}
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.{EventContext, Signal}
@@ -39,6 +40,16 @@ class SignInController(implicit inj: Injector, eventContext: EventContext, conte
   val password = Signal("")
   val name = Signal("")
   val phone = Signal("")
+
+  appEntryController.invitationDetails.onUi {
+    case PhoneNumberResponse(nameOfInvitee, number) =>
+      name ! nameOfInvitee
+      phone ! number
+    case EmailAddressResponse(nameOfInvitee, address) =>
+      name ! nameOfInvitee
+      email ! address
+    case _ =>
+  }
 
   lazy val countryController = new CountryController(context)
   countryController.addObserver(this)

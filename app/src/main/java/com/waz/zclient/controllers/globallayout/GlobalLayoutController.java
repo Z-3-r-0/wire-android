@@ -146,8 +146,7 @@ public class GlobalLayoutController implements IGlobalLayoutController {
                 softInputMode = WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN | WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE;
                 break;
             case START:
-            case EMAIL_LOGIN:
-            case PHONE_LOGIN:
+            case LOGIN_REGISTRATION:
             case MESSAGE_STREAM:
                 softInputMode = WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN | WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE;
                 break;
@@ -161,7 +160,7 @@ public class GlobalLayoutController implements IGlobalLayoutController {
             case PICK_USER:
                 softInputMode =  WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN | WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE;
                 break;
-            case PHONE_REGISTRATION:
+            case PHONE_REGISTRATION_ADD_NAME:
                 softInputMode = WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE;
                 break;
             case DRAWING:

@@ -25,33 +25,19 @@ import com.waz.zclient.core.controllers.tracking.events.Event;
 import com.waz.zclient.core.stores.api.ZMessagingApiStoreObserver;
 import com.waz.zclient.core.stores.appentry.AppEntryStateCallback;
 import com.waz.zclient.fragments.CountryDialogFragment;
-import com.waz.zclient.newreg.fragments.EmailInvitationFragment;
-import com.waz.zclient.newreg.fragments.EmailRegisterFragment;
-import com.waz.zclient.newreg.fragments.EmailSignInFragment;
 import com.waz.zclient.newreg.fragments.PhoneAddEmailFragment;
-import com.waz.zclient.newreg.fragments.PhoneInvitationFragment;
-import com.waz.zclient.newreg.fragments.PhoneRegisterFragment;
-import com.waz.zclient.newreg.fragments.PhoneSignInFragment;
 import com.waz.zclient.newreg.fragments.PhoneVerifyEmailFragment;
 import com.waz.zclient.newreg.fragments.SignUpPhotoFragment;
-import com.waz.zclient.newreg.fragments.WelcomeEmailFragment;
 import com.waz.zclient.newreg.fragments.country.CountryController;
 
 import scala.Function0;
 import scala.runtime.BoxedUnit;
 
 public class AppEntryTestActivity extends TestActivity implements VerifyPhoneFragment.Container,
-                                                                       PhoneRegisterFragment.Container,
-                                                                       PhoneSignInFragment.Container,
                                                                        PhoneSetNameFragment.Container,
                                                                        PhoneAddEmailFragment.Container,
                                                                        PhoneVerifyEmailFragment.Container,
                                                                        SignUpPhotoFragment.Container,
-                                                                       EmailRegisterFragment.Container,
-                                                                       EmailSignInFragment.Container,
-                                                                       WelcomeEmailFragment.Container,
-                                                                       EmailInvitationFragment.Container,
-                                                                       PhoneInvitationFragment.Container,
                                                                        InAppWebViewFragment.Container,
                                                                        CountryDialogFragment.Container,
                                                                        AppEntryStateCallback,
@@ -158,27 +144,12 @@ public class AppEntryTestActivity extends TestActivity implements VerifyPhoneFra
     }
 
     @Override
-    public void onOpenUrlInApp(String url, boolean withCloseButton) {
-
-    }
-
-    @Override
     public int getAccentColor() {
         return 0;
     }
 
     @Override
     public void enableProgress(boolean enabled) {
-
-    }
-
-    @Override
-    public void abortAddAccount() {
-
-    }
-
-    @Override
-    public void openCountryBox() {
 
     }
 

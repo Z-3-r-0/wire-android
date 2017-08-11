@@ -65,7 +65,6 @@ import timber.log.Timber;
 
 public class AppEntryStore implements IAppEntryStore, ErrorsList.ErrorListener {
     public static final String TAG = AppEntryStore.class.getName();
-    public static final String GENERAL_GENERIC_INVITE_TOKEN = "getwire";
     private static final String PREF_REGISTRATION = "PREF_REGISTRATION";
     private static final String PREF_ITEM_ENTRY_POINT = "PREF_ITEM_ENTRY_POINT";
     private static final String PREF_ITEM_EMAIL = "PREF_ITEM_EMAIL";

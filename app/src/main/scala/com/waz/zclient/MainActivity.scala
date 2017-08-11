@@ -48,7 +48,6 @@ import com.waz.zclient.controllers.tracking.events.exception.ExceptionEvent
 import com.waz.zclient.controllers.tracking.events.profile.SignOut
 import com.waz.zclient.controllers.tracking.screens.ApplicationScreen
 import com.waz.zclient.controllers.{SharingController, UserAccountsController}
-import com.waz.zclient.core.api.scala.AppEntryStore
 import com.waz.zclient.core.controllers.tracking.attributes.OpenedMediaAction
 import com.waz.zclient.core.controllers.tracking.events.media.OpenedMediaActionEvent
 import com.waz.zclient.core.controllers.tracking.events.session.LoggedOutEvent
@@ -148,11 +147,21 @@ class MainActivity extends BaseActivity
       case EnterAppStage => onUserLoggedInAndVerified(getStoreFactory.getZMessagingApiStore.getApi.getSelf)
       case DeviceLimitStage => manageDevices()
       case Unknown =>
-        //onUserLoggedInAndVerified(getStoreFactory.getZMessagingApiStore.getApi.getSelf)
         error("Unknown state")
       case _ => openSignUpPage()
     }
 
+    appEntryController.autoConnectInvite.onUi { token =>
+      getControllerFactory.getUserPreferencesController.setGenericInvitationToken(null)
+      getControllerFactory.getUserPreferencesController.setReferralToken(null)
+
+      if (!TextUtils.isEmpty(token) && TextUtils.equals(token, AppEntryController.GenericInviteToken)){
+        getStoreFactory.getConnectStore.requestConnection(token)
+        globalTracking.tagEvent(new AcceptedGenericInviteEvent)
+      }
+
+      appEntryController.invitationToken ! None
+    }
   }
 
   override protected def onResumeFragments() = {
@@ -170,8 +179,6 @@ class MainActivity extends BaseActivity
     getControllerFactory.getNavigationController.addNavigationControllerObserver(this)
     getControllerFactory.getCallingController.addCallingObserver(this)
     getStoreFactory.conversationStore.addConversationStoreObserver(this)
-    handleInvite()
-    handleReferral()
 
     super.onStart()
     //This is needed to drag the user back to the calling activity if they open the app again during a call
@@ -406,22 +413,6 @@ class MainActivity extends BaseActivity
 
   private def replaceMainFragment(fragment: Fragment, TAG: String) = {
     getSupportFragmentManager.beginTransaction.replace(R.id.fl_main_content, fragment, TAG).commit
-  }
-
-  private def handleInvite(): Unit = {
-    val token = getControllerFactory.getUserPreferencesController.getGenericInvitationToken
-    getControllerFactory.getUserPreferencesController.setGenericInvitationToken(null)
-    if (TextUtils.isEmpty(token) || TextUtils.equals(token, AppEntryStore.GENERAL_GENERIC_INVITE_TOKEN)) return
-    getStoreFactory.connectStore.requestConnection(token)
-    globalTracking.tagEvent(new AcceptedGenericInviteEvent)
-  }
-
-  private def handleReferral(): Unit = {
-    val referralToken = getControllerFactory.getUserPreferencesController.getReferralToken
-    getControllerFactory.getUserPreferencesController.setReferralToken(null)
-    if (TextUtils.isEmpty(referralToken) || TextUtils.equals(referralToken, AppEntryStore.GENERAL_GENERIC_INVITE_TOKEN)) return
-    getStoreFactory.connectStore.requestConnection(referralToken)
-    globalTracking.tagEvent(new AcceptedGenericInviteEvent)
   }
 
   def onLogout() = {

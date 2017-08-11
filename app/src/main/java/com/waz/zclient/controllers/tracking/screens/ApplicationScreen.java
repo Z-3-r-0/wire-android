@@ -19,12 +19,10 @@ package com.waz.zclient.controllers.tracking.screens;
 
 public enum ApplicationScreen {
     DISABLED_TRACKING,
-    PHONE_REGISTRATION,
     PHONE_REGISTRATION__VERIFY_CODE,
     PHONE_REGISTRATION__ADD_NAME,
-    PHONE_REGISTRATION__ADD_PHOTO,
-    EMAIL_LOGIN,
-    PHONE_LOGIN,
+    REGISTRATION__ADD_PHOTO,
+    LOGIN_REGISTRATION,
 
     CONVERSATION_LIST,
     START_UI,

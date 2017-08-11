@@ -17,6 +17,7 @@
  */
 package com.waz.zclient
 
+import com.waz.ZLog.ImplicitTag._
 import com.waz.api.impl._
 import com.waz.api.{ClientRegistrationState, KindOfAccess}
 import com.waz.client.RegistrationClientImpl.ActivateResult
@@ -30,7 +31,6 @@ import com.waz.zclient.controllers.SignInController._
 
 import scala.concurrent.Future
 
-//TODO: Invitation token!
 class AppEntryController(implicit inj: Injector, eventContext: EventContext) extends Injectable {
 
   implicit val ec = Threading.Background
@@ -43,39 +43,63 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
     userData <- optZms.fold(Signal.const(Option.empty[UserData]))(z => z.usersStorage.optSignal(z.selfUserId))
   } yield (accountData, userData)
 
+  val invitationToken = Signal(Option.empty[String])
+
+  val invitationDetails = for {
+    Some(token) <- invitationToken
+    req <- Signal.future(ZMessaging.currentAccounts.retrieveInvitationDetails(PersonalInvitationToken(token)))
+  } yield req
+
+  invitationToken.onUi{
+    case Some (token) =>
+      val invToken = PersonalInvitationToken(token)
+      for {
+        invDetails <- ZMessaging.currentAccounts.retrieveInvitationDetails(invToken)
+        _ <- ZMessaging.currentAccounts.generateAccountFromInvitation(invDetails, invToken)
+        _ = invitationToken ! None
+      } yield ()
+    case _ =>
+  }
+
   val entryStage = for {
     (account, user) <- currentAccount
   } yield stateForAccountAndUser(account, user)
 
+  val autoConnectInvite = for {
+    Some(token)   <- invitationToken
+    EnterAppStage <- entryStage
+  } yield token
+
   def stateForAccountAndUser(account: Option[AccountData], user: Option[UserData]): AppEntryStage = {
-    account.fold[AppEntryStage] {
-      LoginStage
-    } { accountData =>
-      if (accountData.clientRegState == ClientRegistrationState.LIMIT_REACHED) {
-        return DeviceLimitStage
-      }
-      if (!accountData.verified) {
-        if (accountData.pendingEmail.isDefined && accountData.password.isDefined) {
-          return VerifyEmailStage
-        }
-        if (accountData.pendingPhone.isDefined) {
-          return VerifyPhoneStage
-        }
-        return LoginStage
-      }
-      if (accountData.regWaiting) {
-        return AddNameStage
-      }
-      user.fold[AppEntryStage] {
-        Unknown
-      } { userData =>
+    (account, user) match {
+      case (None, _) =>
+        LoginStage
+      case (Some(accountData), None) =>
+        if (accountData.clientRegState == ClientRegistrationState.PASSWORD_MISSING) {
+          LoginStage
+        } else if (accountData.clientRegState == ClientRegistrationState.LIMIT_REACHED) {
+          DeviceLimitStage
+        } else if (!accountData.verified) {
+          if (accountData.pendingEmail.isDefined && accountData.password.isDefined) {
+            VerifyEmailStage
+          } else if (accountData.pendingPhone.isDefined) {
+            VerifyPhoneStage
+          } else
+            LoginStage
+        } else if (accountData.regWaiting) {
+          AddNameStage
+        } else
+          LoginStage
+      case (Some(accountData), Some(userData)) =>
         if (userData.picture.isEmpty) {
           return AddPictureStage
         }
         EnterAppStage
-      }
+      case _ =>
+        LoginStage
     }
   }
+
 
   def loginPhone(phone: String): Future[Either[EntryError, Unit]] = {
     ZMessaging.currentAccounts.loginPhone(PhoneNumber(phone)).map {
@@ -99,7 +123,7 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
   }
 
   def registerPhone(phone: String): Future[Either[EntryError, Unit]] = {
-    ZMessaging.currentAccounts.register(PhoneCredentials(PhoneNumber(phone), None), None, AccentColor()).map {
+    ZMessaging.currentAccounts.registerPhone(PhoneNumber(phone)).map {
       case Left(error) => Left(EntryError(error.code, error.label, SignInMethod(Register, Phone)))
       case _ => Right(())
     }
@@ -107,13 +131,13 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
 
   def verifyPhone(code: String): Future[Either[EntryError, Unit]] = {
     ZMessaging.currentAccounts.activeAccount.head.flatMap {
-      case Some(accountData) if accountData.pendingPhone.isDefined && accountData.regWaiting =>
-        ZMessaging.currentAccounts.activatePhoneOnRegister(accountData.pendingPhone.get, ConfirmationCode(code)).map {
+      case Some(accountData) if accountData.regWaiting =>
+        ZMessaging.currentAccounts.activatePhoneOnRegister(accountData.id, ConfirmationCode(code)).map {
           case Left(error) => Left(EntryError(error.code, error.label, SignInMethod(Register, Phone)))
           case _ => Right(())
         }
-      case Some(accountData) if accountData.pendingPhone.isDefined =>
-        ZMessaging.currentAccounts.loginPhone(accountData.pendingPhone.get, ConfirmationCode(code)).flatMap {
+      case Some(accountData) =>
+        ZMessaging.currentAccounts.loginPhone(accountData.id, ConfirmationCode(code)).flatMap {
           case Left(error) => Future.successful(Left(EntryError(error.code, error.label, SignInMethod(Login, Phone))))
           case _ => ZMessaging.currentAccounts.switchAccount(accountData.id).map(_ => Right(()))
         }
@@ -124,7 +148,7 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
   def registerName(name: String): Future[Either[EntryError, Unit]] = {
     ZMessaging.currentAccounts.activeAccount.head.flatMap {
       case Some(accountData) if accountData.phone.isDefined && accountData.regWaiting && accountData.code.isDefined =>
-        ZMessaging.currentAccounts.registerNameOnPhone(accountData.phone.get, ConfirmationCode(accountData.code.get), name).flatMap {
+        ZMessaging.currentAccounts.registerNameOnPhone(accountData.id, name).flatMap {
           case Left(error) => Future.successful(Left(EntryError(error.code, error.label, SignInMethod(Register, Phone))))
           case _ => ZMessaging.currentAccounts.switchAccount(accountData.id).map(_ => Right(()))
         }
@@ -140,7 +164,6 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
     }
   }
 
-  //TODO: register and login
   def resendActivationPhoneCode(shouldCall: Boolean = false): Future[Either[EntryError, Unit]] = {
 
     def requestCode(accountData: AccountData, kindOfAccess: KindOfAccess): Future[ActivateResult] = {
@@ -171,6 +194,8 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
 }
 
 object AppEntryController {
+  val GenericInviteToken: String = "getwire"
+
   trait AppEntryStage
   object Unknown          extends AppEntryStage
   object EnterAppStage    extends AppEntryStage

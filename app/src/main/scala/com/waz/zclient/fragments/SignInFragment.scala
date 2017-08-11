@@ -26,6 +26,7 @@ import android.transition._
 import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.{FrameLayout, LinearLayout}
 import com.waz.ZLog.ImplicitTag._
+import com.waz.ZLog._
 import com.waz.threading.Threading
 import com.waz.zclient._
 import com.waz.zclient.controllers.SignInController
@@ -248,6 +249,7 @@ class SignInFragment extends BaseFragment[Container] with FragmentHelper with Vi
 }
 
 object SignInFragment {
+  val Tag = logTagFor[SignInFragment]
   trait Container {
     def abortAddAccount(): Unit
   }

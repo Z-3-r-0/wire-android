@@ -77,7 +77,7 @@ class PhoneSetNameFragment extends BaseFragment[PhoneSetNameFragment.Container] 
         }
       }
     })
-    getControllerFactory.getGlobalLayoutController.setSoftInputModeForPage(Page.PHONE_REGISTRATION)
+    getControllerFactory.getGlobalLayoutController.setSoftInputModeForPage(Page.PHONE_REGISTRATION_ADD_NAME)
     KeyboardUtils.showKeyboard(getActivity)
   }
 

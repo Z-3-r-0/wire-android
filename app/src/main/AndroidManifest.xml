@@ -231,14 +231,6 @@
         </activity>
 
         <activity
-            android:name=".OTRSignInActivity"
-            android:label="@string/app_name"
-            android:launchMode="singleTask"
-            android:theme="@style/Theme.Light"
-            android:windowSoftInputMode="stateHidden|adjustResize">
-        </activity>
-
-        <activity
             android:name=".ForceUpdateActivity"
             android:noHistory="true"
             android:theme="@style/Theme.Light"

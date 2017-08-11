@@ -17,13 +17,12 @@
  */
 package com.waz.zclient
 
-import android.content.{DialogInterface, Intent}
 import android.content.res.Configuration
+import android.content.{DialogInterface, Intent}
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
-import android.support.annotation.NonNull
-import android.support.v4.app.{FragmentManager, FragmentTransaction}
+import android.support.v4.app.FragmentTransaction
 import android.support.v4.content.ContextCompat
 import android.widget.Toast
 import com.localytics.android.Localytics
@@ -36,7 +35,6 @@ import com.waz.zclient.AppEntryController._
 import com.waz.zclient.appentry.{EmailVerifyEmailFragment, PhoneSetNameFragment, VerifyPhoneFragment}
 import com.waz.zclient.controllers.navigation.{NavigationControllerObserver, Page}
 import com.waz.zclient.controllers.tracking.screens.ApplicationScreen
-import com.waz.zclient.core.api.scala.AppEntryStore
 import com.waz.zclient.core.controllers.tracking.attributes.{Attribute, RegistrationEventContext}
 import com.waz.zclient.core.controllers.tracking.events.Event
 import com.waz.zclient.core.controllers.tracking.events.registration.{OpenedPhoneRegistrationFromInviteEvent, SucceededWithRegistrationEvent}
@@ -61,33 +59,24 @@ object AppEntryActivity {
 
 class AppEntryActivity extends BaseActivity
   with VerifyPhoneFragment.Container
-  with PhoneRegisterFragment.Container
-  with PhoneSignInFragment.Container
   with PhoneSetNameFragment.Container
-  with PhoneAddEmailFragment.Container
-  with OTRPhoneAddEmailFragment.Container
-  with PhoneVerifyEmailFragment.Container
   with SignUpPhotoFragment.Container
-  with EmailRegisterFragment.Container
-  with EmailSignInFragment.Container
   with EmailVerifyEmailFragment.Container
-  with WelcomeEmailFragment.Container
-  with EmailInvitationFragment.Container
-  with PhoneInvitationFragment.Container
   with InAppWebViewFragment.Container
   with CountryDialogFragment.Container
   with FirstLaunchAfterLoginFragment.Container
   with NavigationControllerObserver
   with SignInFragment.Container {
 
-  private var unsplashInitImageAsset: ImageAsset = null
+  private lazy val unsplashInitImageAsset = ImageAssetFactory.getImageAsset(AndroidURIUtil.parse(UNSPLASH_API_URL))
   private var unsplashInitLoadHandle: LoadHandle = null
-  private var progressView: LoadingIndicatorView = null
+  private lazy val progressView = ViewUtils.getView(this, R.id.liv__progress).asInstanceOf[LoadingIndicatorView]
   private lazy val countryController: CountryController = new CountryController(this)
   private var createdFromSavedInstance: Boolean = false
   private var isPaused: Boolean = false
 
   private lazy val appEntryController = inject[AppEntryController]
+  private lazy val globalTrackingController = inject[GlobalTrackingController]
 
   ZMessaging.currentGlobal.blacklist.upToDate.onUi {
     case false =>
@@ -97,20 +86,11 @@ class AppEntryActivity extends BaseActivity
   }
 
   override def onBackPressed(): Unit = {
-    val fragment: SignUpPhotoFragment = getSupportFragmentManager.findFragmentByTag(SignUpPhotoFragment.TAG).asInstanceOf[SignUpPhotoFragment]
+    val fragment = getSupportFragmentManager.findFragmentByTag(SignUpPhotoFragment.TAG).asInstanceOf[SignUpPhotoFragment]
     if (fragment != null && fragment.onBackPressed) {
       return
     }
-    val otrPhoneAddEmailFragment: OTRPhoneAddEmailFragment = getSupportFragmentManager.findFragmentByTag(OTRPhoneAddEmailFragment.TAG).asInstanceOf[OTRPhoneAddEmailFragment]
-    if (otrPhoneAddEmailFragment != null) {
-      getSupportFragmentManager.popBackStackImmediate(R.id.fl_main_content, FragmentManager.POP_BACK_STACK_INCLUSIVE)
-      getStoreFactory.getZMessagingApiStore.logout()
-      getStoreFactory.getAppEntryStore.setState(AppEntryState.PHONE_SIGN_IN)
-      return
-    }
-    if (!getStoreFactory.getAppEntryStore.onBackPressed) {
-      super.onBackPressed()
-    }
+    super.onBackPressed()
   }
 
   override def onCreate(savedInstanceState: Bundle): Unit = {
@@ -118,24 +98,18 @@ class AppEntryActivity extends BaseActivity
     super.onCreate(savedInstanceState)
     ViewUtils.lockScreenOrientation(Configuration.ORIENTATION_PORTRAIT, this)
     setContentView(R.layout.activity_signup)
-    progressView = ViewUtils.getView(this, R.id.liv__progress)
     enableProgress(false)
     createdFromSavedInstance = savedInstanceState != null
 
-    if (unsplashInitLoadHandle == null && unsplashInitImageAsset == null) {
-      unsplashInitImageAsset = ImageAssetFactory.getImageAsset(AndroidURIUtil.parse(UNSPLASH_API_URL))
-      // This is just to force that SE will download the image so that it is probably ready when we are at the
-      // set picture screen
-      unsplashInitLoadHandle = unsplashInitImageAsset.getSingleBitmap(AppEntryActivity.PREFETCH_IMAGE_WIDTH, new BitmapCallback() {
-        def onBitmapLoaded(b: Bitmap): Unit = {}
-      })
-    }
+    unsplashInitLoadHandle = unsplashInitImageAsset.getSingleBitmap(AppEntryActivity.PREFETCH_IMAGE_WIDTH, new BitmapCallback() {
+      def onBitmapLoaded(b: Bitmap): Unit = {}
+    })
 
     appEntryController.entryStage.onUi {
       case EnterAppStage =>
         onEnterApplication(false)
       case LoginStage =>
-        onShowEmailSignInPage()
+        onShowSignInPage()
       case DeviceLimitStage =>
         onEnterApplication(true)
       case AddNameStage =>
@@ -192,11 +166,6 @@ class AppEntryActivity extends BaseActivity
     getSupportFragmentManager.findFragmentById(R.id.fl_main_content).onActivityResult(requestCode, resultCode, data)
   }
 
-  override def onDestroy(): Unit = {
-    getStoreFactory.getAppEntryStore.clearCurrentState()
-    super.onDestroy()
-  }
-
   def enableProgress(enabled: Boolean): Unit = {
     if (enabled)
       progressView.show(LoadingIndicatorView.SPINNER_WITH_DIMMED_BACKGROUND, true)
@@ -236,51 +205,12 @@ class AppEntryActivity extends BaseActivity
 
   def getAccentColor: Int = ContextCompat.getColor(this, R.color.text__primary_dark)
 
-  def onShowPhoneInvitationPage(): Unit = {
-    val transaction: FragmentTransaction = getSupportFragmentManager.beginTransaction
-    setDefaultAnimation(transaction).replace(R.id.fl_main_content, PhoneInvitationFragment.newInstance(getStoreFactory.getAppEntryStore.getInvitationName, getStoreFactory.getAppEntryStore.getInvitationPhone), PhoneInvitationFragment.TAG).commit
-    enableProgress(false)
-  }
-
-  def onShowEmailInvitationPage(): Unit = {
-    val transaction: FragmentTransaction = getSupportFragmentManager.beginTransaction
-    setDefaultAnimation(transaction).replace(R.id.fl_main_content, EmailInvitationFragment.newInstance(getStoreFactory.getAppEntryStore.getInvitationName, getStoreFactory.getAppEntryStore.getInvitationEmail), EmailInvitationFragment.TAG).commit
-    enableProgress(false)
-  }
-
   def onInvitationFailed(): Unit = {
     Toast.makeText(this, getString(R.string.invitation__email__failed), Toast.LENGTH_SHORT).show()
   }
 
   def onInvitationSuccess(): Unit = {
     getControllerFactory.getUserPreferencesController.setPersonalInvitationToken(null)
-  }
-
-  def onShowPhoneRegistrationPage(): Unit = {
-    if (isPaused) {
-      return
-    }
-    val transaction: FragmentTransaction = getSupportFragmentManager.beginTransaction
-    setDefaultAnimation(transaction).replace(R.id.fl_main_content, PhoneRegisterFragment.newInstance, PhoneRegisterFragment.TAG).commit
-    enableProgress(false)
-    if (fromGenericInvite) {
-      getStoreFactory.getAppEntryStore.setRegistrationContext(RegistrationEventContext.GENERIC_INVITE_PHONE)
-      // Temporary tracking to check on high number of invite registrations AN-4117
-      val referralToken: String = getControllerFactory.getUserPreferencesController.getReferralToken
-      val token: String = getControllerFactory.getUserPreferencesController.getGenericInvitationToken
-      injectJava(classOf[GlobalTrackingController]).tagEvent(new OpenedPhoneRegistrationFromInviteEvent(referralToken, token))
-    }
-    else {
-      getStoreFactory.getAppEntryStore.setRegistrationContext(RegistrationEventContext.PHONE)
-    }
-    getControllerFactory.getNavigationController.setLeftPage(Page.PHONE_REGISTRATION, AppEntryActivity.TAG)
-  }
-
-  def onShowPhoneSignInPage(): Unit = {
-    val transaction: FragmentTransaction = getSupportFragmentManager.beginTransaction
-    setDefaultAnimation(transaction).replace(R.id.fl_main_content, PhoneSignInFragment.newInstance, PhoneSignInFragment.TAG).commit
-    enableProgress(false)
-    getControllerFactory.getNavigationController.setLeftPage(Page.PHONE_LOGIN, AppEntryActivity.TAG)
   }
 
   def onShowPhoneCodePage(): Unit = {
@@ -290,16 +220,7 @@ class AppEntryActivity extends BaseActivity
     val transaction: FragmentTransaction = getSupportFragmentManager.beginTransaction
     setDefaultAnimation(transaction).replace(R.id.fl_main_content, VerifyPhoneFragment.newInstance(false), VerifyPhoneFragment.TAG).commit
     enableProgress(false)
-    getControllerFactory.getNavigationController.setLeftPage(Page.PHONE_REGISTRATION_VERIFY_CODE, AppEntryActivity.TAG)
-  }
-
-  def onShowPhoneAddEmailPage(): Unit = {
-    if (isPaused) {
-      return
-    }
-    val transaction: FragmentTransaction = getSupportFragmentManager.beginTransaction
-    setDefaultAnimation(transaction).replace(R.id.fl_main_content, OTRPhoneAddEmailFragment.newInstance, OTRPhoneAddEmailFragment.TAG).addToBackStack(OTRPhoneAddEmailFragment.TAG).commit
-    enableProgress(false)
+    getControllerFactory.getNavigationController.setLeftPage(Page.PHONE_VERIFY_CODE, AppEntryActivity.TAG)
   }
 
   def onShowPhoneVerifyEmailPage(): Unit = {
@@ -315,26 +236,7 @@ class AppEntryActivity extends BaseActivity
     val transaction: FragmentTransaction = getSupportFragmentManager.beginTransaction
     setDefaultAnimation(transaction).replace(R.id.fl_main_content, SignUpPhotoFragment.newInstance(SignUpPhotoFragment.RegistrationType.Phone), SignUpPhotoFragment.TAG).commit
     enableProgress(false)
-    getControllerFactory.getNavigationController.setLeftPage(Page.PHONE_REGISTRATION_ADD_PHOTO, AppEntryActivity.TAG)
-  }
-
-  def onShowEmailWelcomePage(): Unit = {
-    val transaction: FragmentTransaction = getSupportFragmentManager.beginTransaction
-    setDefaultAnimation(transaction).replace(R.id.fl_main_content, WelcomeEmailFragment.newInstance, WelcomeEmailFragment.TAG).commit
-    enableProgress(false)
-    KeyboardUtils.closeKeyboardIfShown(this)
-  }
-
-  def onShowEmailRegistrationPage(): Unit = {
-    val transaction: FragmentTransaction = getSupportFragmentManager.beginTransaction
-    setDefaultAnimation(transaction).replace(R.id.fl_main_content, EmailRegisterFragment.newInstance, EmailRegisterFragment.TAG).commit
-    enableProgress(false)
-    if (fromGenericInvite) {
-      getStoreFactory.getAppEntryStore.setRegistrationContext(RegistrationEventContext.GENERIC_INVITE_EMAIL)
-    }
-    else {
-      getStoreFactory.getAppEntryStore.setRegistrationContext(RegistrationEventContext.EMAIL)
-    }
+    getControllerFactory.getNavigationController.setLeftPage(Page.REGISTRATION_ADD_PHOTO, AppEntryActivity.TAG)
   }
 
   def onShowEmailVerifyEmailPage(): Unit = {
@@ -343,14 +245,23 @@ class AppEntryActivity extends BaseActivity
     enableProgress(false)
   }
 
-  def onShowEmailSignInPage(): Unit = {
-    if (getSupportFragmentManager.findFragmentByTag(EmailSignInFragment.TAG) != null) {
+  def onShowSignInPage(): Unit = {
+    if (getSupportFragmentManager.findFragmentByTag(SignInFragment.Tag) != null) {
       return
     }
+
+    if (fromGenericInvite) {
+      getStoreFactory.getAppEntryStore.setRegistrationContext(RegistrationEventContext.GENERIC_INVITE_PHONE)
+      val referralToken = getControllerFactory.getUserPreferencesController.getReferralToken
+      val token = getControllerFactory.getUserPreferencesController.getGenericInvitationToken
+      globalTrackingController.tagEvent(new OpenedPhoneRegistrationFromInviteEvent(referralToken, token))
+      appEntryController.invitationToken ! Option(token)
+    }
+
     val transaction: FragmentTransaction = getSupportFragmentManager.beginTransaction
-    setDefaultAnimation(transaction).replace(R.id.fl_main_content, new SignInFragment, EmailSignInFragment.TAG).commit
+    setDefaultAnimation(transaction).replace(R.id.fl_main_content, new SignInFragment, SignInFragment.Tag).commit
     enableProgress(false)
-    getControllerFactory.getNavigationController.setLeftPage(Page.EMAIL_LOGIN, AppEntryActivity.TAG)
+    getControllerFactory.getNavigationController.setLeftPage(Page.LOGIN_REGISTRATION, AppEntryActivity.TAG)
   }
 
   def onShowEmailSetPicturePage(): Unit = {
@@ -415,7 +326,6 @@ class AppEntryActivity extends BaseActivity
   }
 
   def openCountryBox(): Unit = {
-    //getSupportFragmentManager.beginTransaction.setCustomAnimations(R.anim.fade_in, R.anim.fade_out, R.anim.fade_in, R.anim.fade_out).add(R.id.container__country_box, new CountryDialogFragment, CountryDialogFragment.TAG).addToBackStack(CountryDialogFragment.TAG).commit
     getSupportFragmentManager
       .beginTransaction
       .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
@@ -423,16 +333,6 @@ class AppEntryActivity extends BaseActivity
       .addToBackStack(CountryDialogFragment.TAG)
       .commit
     KeyboardUtils.hideKeyboard(this)
-  }
-
-  override protected def onRestoreInstanceState(@NonNull savedInstanceState: Bundle): Unit = {
-    super.onRestoreInstanceState(savedInstanceState)
-    getStoreFactory.getAppEntryStore.onRestoreInstanceState(savedInstanceState, getStoreFactory.getZMessagingApiStore.getApi.getSelf)
-  }
-
-  override protected def onSaveInstanceState(outState: Bundle): Unit = {
-    getStoreFactory.getAppEntryStore.onSaveInstanceState(outState)
-    super.onSaveInstanceState(outState)
   }
 
   def onOpenUrlInApp(url: String, withCloseButton: Boolean): Unit = {
@@ -461,25 +361,21 @@ class AppEntryActivity extends BaseActivity
   private def fromGenericInvite: Boolean = {
     val referralToken: String = getControllerFactory.getUserPreferencesController.getReferralToken
     val token: String = getControllerFactory.getUserPreferencesController.getGenericInvitationToken
-    token != null || AppEntryStore.GENERAL_GENERIC_INVITE_TOKEN == referralToken
+    token != null || GenericInviteToken == referralToken
   }
 
   def getUnsplashImageAsset: ImageAsset = unsplashInitImageAsset
 
   def onPageVisible(page: Page): Unit = {
     page match {
-      case Page.PHONE_REGISTRATION =>
-        injectJava(classOf[GlobalTrackingController]).onApplicationScreen(ApplicationScreen.PHONE_REGISTRATION)
-      case Page.PHONE_REGISTRATION_VERIFY_CODE =>
-        injectJava(classOf[GlobalTrackingController]).onApplicationScreen(ApplicationScreen.PHONE_REGISTRATION__VERIFY_CODE)
+      case Page.LOGIN_REGISTRATION =>
+        globalTrackingController.onApplicationScreen(ApplicationScreen.LOGIN_REGISTRATION)
+      case Page.PHONE_VERIFY_CODE =>
+        globalTrackingController.onApplicationScreen(ApplicationScreen.PHONE_REGISTRATION__VERIFY_CODE)
       case Page.PHONE_REGISTRATION_ADD_NAME =>
-        injectJava(classOf[GlobalTrackingController]).onApplicationScreen(ApplicationScreen.PHONE_REGISTRATION__ADD_NAME)
-      case Page.PHONE_REGISTRATION_ADD_PHOTO =>
-        injectJava(classOf[GlobalTrackingController]).onApplicationScreen(ApplicationScreen.PHONE_REGISTRATION__ADD_PHOTO)
-      case Page.EMAIL_LOGIN =>
-        injectJava(classOf[GlobalTrackingController]).onApplicationScreen(ApplicationScreen.EMAIL_LOGIN)
-      case Page.PHONE_LOGIN =>
-        injectJava(classOf[GlobalTrackingController]).onApplicationScreen(ApplicationScreen.PHONE_LOGIN)
+        globalTrackingController.onApplicationScreen(ApplicationScreen.PHONE_REGISTRATION__ADD_NAME)
+      case Page.REGISTRATION_ADD_PHOTO =>
+        globalTrackingController.onApplicationScreen(ApplicationScreen.REGISTRATION__ADD_PHOTO)
       case _ =>
     }
   }

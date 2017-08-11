@@ -79,6 +79,7 @@
             android:textAllCaps="true"
             android:textSize="@dimen/wire__text_size__small"
             custom:font="@string/wire__typeface__light"
+            android:textColor="@color/text__primary_dark"
             />
     </LinearLayout>
 

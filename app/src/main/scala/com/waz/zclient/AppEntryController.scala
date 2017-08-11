@@ -17,8 +17,6 @@
  */
 package com.waz.zclient
 
-import com.waz.ZLog
-import com.waz.ZLog.ImplicitTag._
 import com.waz.api.impl._
 import com.waz.api.{ClientRegistrationState, KindOfAccess}
 import com.waz.client.RegistrationClientImpl.ActivateResult
@@ -49,10 +47,6 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
     (account, user) <- currentAccount
   } yield stateForAccountAndUser(account, user)
 
-  currentAccount{ acc => ZLog.debug(s"Current account: $acc")}
-  entryStage{ stage => ZLog.debug(s"Current stage: $stage")}
-  optZms{ zms => zms.foreach(z => ZLog.debug(s"Current zms user: ${z.selfUserId}"))}
-
   def stateForAccountAndUser(account: Option[AccountData], user: Option[UserData]): AppEntryStage = {
     account.fold[AppEntryStage] {
       LoginStage
@@ -73,7 +67,7 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
         return AddNameStage
       }
       user.fold[AppEntryStage] {
-        EnterAppStage
+        Unknown
       } { userData =>
         if (userData.picture.isEmpty) {
           return AddPictureStage

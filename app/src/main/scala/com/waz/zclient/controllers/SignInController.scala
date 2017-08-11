@@ -18,6 +18,7 @@
 package com.waz.zclient.controllers
 
 import android.content.Context
+import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.{EventContext, Signal}
 import com.waz.zclient.controllers.SignInController._
@@ -31,6 +32,7 @@ class SignInController(implicit inj: Injector, eventContext: EventContext, conte
 
   private lazy val appEntryController = inject[AppEntryController]
 
+  lazy val isAddingAccount = ZMessaging.currentAccounts.loggedInAccounts.map(_.nonEmpty)
   val uiSignInState = Signal[SignInMethod](SignInMethod(Login, Email))
 
   val email = Signal("")

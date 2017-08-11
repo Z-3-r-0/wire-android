@@ -36,11 +36,12 @@ import com.waz.zclient.newreg.fragments.country.Country
 import com.waz.zclient.newreg.views.PhoneConfirmationButton
 import com.waz.zclient.pages.BaseFragment
 import com.waz.zclient.pages.main.profile.views.GuidedEditText
-import com.waz.zclient.ui.text.{TypefaceEditText, TypefaceTextView}
+import com.waz.zclient.ui.text.{GlyphTextView, TypefaceEditText, TypefaceTextView}
 import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient.ui.views.tab.TabIndicatorLayout
 import com.waz.zclient.ui.views.tab.TabIndicatorLayout.Callback
 import com.waz.zclient.utils.ViewUtils
+import com.waz.zclient.utils.RichView
 
 class SignInFragment extends BaseFragment[Container] with FragmentHelper with View.OnClickListener {
 
@@ -56,6 +57,7 @@ class SignInFragment extends BaseFragment[Container] with FragmentHelper with Vi
   lazy val phoneButton = findById[TypefaceTextView](getView, R.id.ttv__new_reg__sign_in__go_to__phone)
   lazy val emailButton = findById[TypefaceTextView](getView, R.id.ttv__new_reg__sign_in__go_to__email)
   lazy val tabSelector = findById[TabIndicatorLayout](getView, R.id.til__app_entry)
+  lazy val closeButton = findById[GlyphTextView](getView, R.id.close_button)
 
   lazy val emailTextWatch = TextListener(signInController.email ! _)
   lazy val passwordTextWatch = TextListener(signInController.password ! _)
@@ -118,6 +120,7 @@ class SignInFragment extends BaseFragment[Container] with FragmentHelper with Vi
 
     phoneButton.setOnClickListener(this)
     emailButton.setOnClickListener(this)
+    closeButton.setOnClickListener(this)
     tabSelector.setLabels(Array[Int](R.string.new_reg__phone_signup__create_account, R.string.i_have_an_account))
     tabSelector.setTextColor(ContextCompat.getColorStateList(getContext, R.color.white))
     tabSelector.setSelected(TabPages.SIGN_IN)
@@ -167,6 +170,7 @@ class SignInFragment extends BaseFragment[Container] with FragmentHelper with Vi
 
     signInController.isValid.onUi { setConfirmationButtonActive }
     signInController.phoneCountry.onUi { onCountryHasChanged }
+    signInController.isAddingAccount.onUi { closeButton.setVisible }
   }
 
   private def setConfirmationButtonActive(active: Boolean): Unit = {
@@ -218,7 +222,8 @@ class SignInFragment extends BaseFragment[Container] with FragmentHelper with Vi
           case _ =>
             getActivity.asInstanceOf[AppEntryActivity].enableProgress(false)
         }
-
+      case R.id.close_button =>
+        getContainer.abortAddAccount()
       case _ =>
     }
   }
@@ -243,7 +248,9 @@ class SignInFragment extends BaseFragment[Container] with FragmentHelper with Vi
 }
 
 object SignInFragment {
-  trait Container
+  trait Container {
+    def abortAddAccount(): Unit
+  }
 }
 
 class AutoTransition2 extends TransitionSet {

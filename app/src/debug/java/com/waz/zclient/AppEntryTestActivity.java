@@ -28,7 +28,6 @@ import com.waz.zclient.fragments.CountryDialogFragment;
 import com.waz.zclient.newreg.fragments.EmailInvitationFragment;
 import com.waz.zclient.newreg.fragments.EmailRegisterFragment;
 import com.waz.zclient.newreg.fragments.EmailSignInFragment;
-import com.waz.zclient.newreg.fragments.EmailVerifyEmailFragment;
 import com.waz.zclient.newreg.fragments.PhoneAddEmailFragment;
 import com.waz.zclient.newreg.fragments.PhoneInvitationFragment;
 import com.waz.zclient.newreg.fragments.PhoneRegisterFragment;
@@ -50,7 +49,6 @@ public class AppEntryTestActivity extends TestActivity implements VerifyPhoneFra
                                                                        SignUpPhotoFragment.Container,
                                                                        EmailRegisterFragment.Container,
                                                                        EmailSignInFragment.Container,
-                                                                       EmailVerifyEmailFragment.Container,
                                                                        WelcomeEmailFragment.Container,
                                                                        EmailInvitationFragment.Container,
                                                                        PhoneInvitationFragment.Container,

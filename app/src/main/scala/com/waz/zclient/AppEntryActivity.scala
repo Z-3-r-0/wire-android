@@ -33,7 +33,7 @@ import com.waz.api.{BitmapCallback, ImageAsset, ImageAssetFactory, LoadHandle}
 import com.waz.service.{AccountsService, ZMessaging}
 import com.waz.utils.wrappers.AndroidURIUtil
 import com.waz.zclient.AppEntryController._
-import com.waz.zclient.appentry.{PhoneSetNameFragment, VerifyPhoneFragment}
+import com.waz.zclient.appentry.{EmailVerifyEmailFragment, PhoneSetNameFragment, VerifyPhoneFragment}
 import com.waz.zclient.controllers.navigation.{NavigationControllerObserver, Page}
 import com.waz.zclient.controllers.tracking.screens.ApplicationScreen
 import com.waz.zclient.core.api.scala.AppEntryStore
@@ -77,7 +77,8 @@ class AppEntryActivity extends BaseActivity
   with InAppWebViewFragment.Container
   with CountryDialogFragment.Container
   with FirstLaunchAfterLoginFragment.Container
-  with NavigationControllerObserver {
+  with NavigationControllerObserver
+  with SignInFragment.Container {
 
   private var unsplashInitImageAsset: ImageAsset = null
   private var unsplashInitLoadHandle: LoadHandle = null

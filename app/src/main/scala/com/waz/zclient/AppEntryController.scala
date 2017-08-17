@@ -17,9 +17,8 @@
  */
 package com.waz.zclient
 
-import com.waz.ZLog.ImplicitTag._
-import com.waz.api.impl._
-import com.waz.api.{ClientRegistrationState, KindOfAccess}
+import com.waz.api.impl.ErrorResponse
+import com.waz.api.{ClientRegistrationState, ImageAsset, KindOfAccess}
 import com.waz.client.RegistrationClientImpl.ActivateResult
 import com.waz.client.RegistrationClientImpl.ActivateResult.{Failure, PasswordExists}
 import com.waz.model._
@@ -191,6 +190,13 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
   }
 
   def cancelVerification(): Unit = ZMessaging.currentAccounts.logout(true)
+
+  def setPicture(imageAsset: ImageAsset): Unit = {
+    optZms.head.map {
+      case Some(zms) => zms.users.updateSelfPicture(imageAsset)
+      case _ =>
+    }
+  }
 
 }
 

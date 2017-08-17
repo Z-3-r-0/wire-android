@@ -49,7 +49,6 @@ import android.widget.EditText;
 import android.widget.TextView;
 import com.waz.api.CredentialsUpdateListener;
 import com.waz.zclient.R;
-import com.waz.zclient.core.stores.appentry.AppEntryError;
 import com.waz.zclient.newreg.fragments.country.Country;
 import com.waz.zclient.newreg.fragments.country.CountryController;
 import com.waz.zclient.pages.BaseDialogFragment;
@@ -305,11 +304,7 @@ public class AddPhoneNumberPreferenceDialogFragment extends BaseDialogFragment<A
                                                                                      if (containerView == null) {
                                                                                          return;
                                                                                      }
-                                                                                     if (AppEntryError.PHONE_EXISTS.correspondsTo(errorCode, label)) {
-                                                                                         showError(getString(AppEntryError.PHONE_EXISTS.headerResource));
-                                                                                     } else {
-                                                                                         showError(getString(AppEntryError.PHONE_REGISTER_GENERIC_ERROR.headerResource));
-                                                                                     }
+                                                                                     showError(getString(R.string.new_reg_email_register_generic_error_header));
                                                                                  }
                                                                              });
                                       }

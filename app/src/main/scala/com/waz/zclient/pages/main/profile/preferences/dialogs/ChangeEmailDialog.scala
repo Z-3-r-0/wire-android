@@ -32,11 +32,11 @@ import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.{EventStream, Signal}
 import com.waz.utils.returning
+import com.waz.zclient.controllers.SignInController.{Email, Register, SignInMethod}
 import com.waz.zclient.controllers.global.PasswordController
-import com.waz.zclient.core.stores.appentry.AppEntryError
 import com.waz.zclient.pages.main.profile.validator.{EmailValidator, PasswordValidator}
 import com.waz.zclient.utils.RichView
-import com.waz.zclient.{FragmentHelper, R}
+import com.waz.zclient.{EntryError, FragmentHelper, R}
 
 import scala.concurrent.Future
 import scala.util.Try
@@ -100,12 +100,8 @@ class ChangeEmailDialog extends DialogFragment with FragmentHelper {
     //TODO tidy this up - we could split up the error types and set them on the appropriate layout a little better
     onError.onUi {
       case ErrorResponse(c, _, l) =>
-        val error =
-          if (AppEntryError.PHONE_ADD_PASSWORD.correspondsTo(c, l)) getString(AppEntryError.PHONE_ADD_PASSWORD.headerResource)
-          else if (AppEntryError.EMAIL_EXISTS.correspondsTo(c, l)) getString(AppEntryError.EMAIL_EXISTS.headerResource)
-          else if (AppEntryError.EMAIL_INVALID.correspondsTo(c, l)) getString(AppEntryError.EMAIL_INVALID.headerResource)
-          else getString(AppEntryError.EMAIL_GENERIC_ERROR.headerResource)
-        emailInputLayout.setError(error)
+        val error = EntryError(c, l, SignInMethod(Register, Email))
+        emailInputLayout.setError(getString(error.headerResource))
     }
 
     val alertDialog = new AlertDialog.Builder(getActivity)

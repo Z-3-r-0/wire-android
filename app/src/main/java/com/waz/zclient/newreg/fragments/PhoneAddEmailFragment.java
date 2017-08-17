@@ -26,9 +26,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import com.waz.zclient.R;
 import com.waz.zclient.controllers.navigation.Page;
-import com.waz.zclient.core.stores.appentry.AppEntryError;
-import com.waz.zclient.core.stores.appentry.IAppEntryStore;
-import com.waz.zclient.newreg.utils.AppEntryUtil;
 import com.waz.zclient.newreg.views.PhoneConfirmationButton;
 import com.waz.zclient.pages.BaseFragment;
 import com.waz.zclient.pages.main.profile.validator.EmailValidator;
@@ -50,25 +47,6 @@ public class PhoneAddEmailFragment extends BaseFragment<PhoneAddEmailFragment.Co
     private GuidedEditText guidedEditTextEmail;
     private GuidedEditText guidedEditTextPassword;
     private PhoneConfirmationButton phoneConfirmationButton;
-
-    private IAppEntryStore.ErrorCallback errorCallback = new IAppEntryStore.ErrorCallback() {
-        @Override
-        public void onError(AppEntryError appEntryError) {
-            if (getContainer() == null) {
-                return;
-            }
-            getContainer().enableProgress(false);
-
-            AppEntryUtil.showErrorDialog(PhoneAddEmailFragment.this.getActivity(),
-                                         appEntryError,
-                                         new AppEntryUtil.ErrorDialogCallback() {
-                                             @Override
-                                             public void onOk() {
-                                                 KeyboardUtils.showKeyboard(getActivity());
-                                             }
-                                         });
-        }
-    };
 
     public static Fragment newInstance() {
         return new PhoneAddEmailFragment();
@@ -96,8 +74,6 @@ public class PhoneAddEmailFragment extends BaseFragment<PhoneAddEmailFragment.Co
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        guidedEditTextEmail.setText(getStoreFactory().appEntryStore().getEmail());
-        guidedEditTextPassword.setText(getStoreFactory().appEntryStore().getPassword());
     }
 
     @Override
@@ -180,12 +156,6 @@ public class PhoneAddEmailFragment extends BaseFragment<PhoneAddEmailFragment.Co
     private void addEmail() {
         getContainer().enableProgress(true);
         KeyboardUtils.hideKeyboard(getActivity());
-
-        getStoreFactory().appEntryStore()
-                         .addEmailAndPasswordToPhone(guidedEditTextEmail.getText(),
-                                                     guidedEditTextPassword.getText(),
-                                                     errorCallback,
-                                                     errorCallback);
     }
 
     public interface Container {

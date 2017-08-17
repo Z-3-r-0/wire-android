@@ -29,8 +29,6 @@ class ScalaStoreFactory(context: Context, selectionController: => SelectionContr
 
   protected def createNetworkStore = new ScalaNetworkStore(zMessagingApiStore.getApi)
 
-  protected def createAppEntryStore = new AppEntryStore(context, zMessagingApiStore.getApi)
-
   protected def createConversationStore = new ScalaConversationStore(zMessagingApiStore.getApi, selectionController)
 
   protected def createProfileStore = new ScalaProfileStore(zMessagingApiStore.getApi)

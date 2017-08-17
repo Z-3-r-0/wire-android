@@ -19,7 +19,6 @@ package com.waz.zclient.core.stores;
 
 import com.waz.api.IConversation
 import com.waz.zclient.core.stores.api.IZMessagingApiStore
-import com.waz.zclient.core.stores.appentry.IAppEntryStore
 import com.waz.zclient.core.stores.connect.IConnectStore
 import com.waz.zclient.core.stores.conversation.IConversationStore
 import com.waz.zclient.core.stores.draft.IDraftStore
@@ -42,7 +41,6 @@ abstract class StoreFactory extends IStoreFactory {
   private val _participantsStore = lazyStore { createParticipantsStore() }
   private val _singleParticipantStore = lazyStore { createSingleParticipantStore() }
   private val _inAppNotificationStore = lazyStore { createInAppNotificationStore() }
-  private val _appEntryStore = lazyStore { createAppEntryStore() }
   private val _connectStore = lazyStore { createConnectStore() }
   private val _draftStore = lazyStore { createDraftStore() }
   private val _zMessagingApiStore = lazyStore { createZMessagingApiStore() }
@@ -51,7 +49,6 @@ abstract class StoreFactory extends IStoreFactory {
   private var tornDown = false
 
   protected def createZMessagingApiStore(): IZMessagingApiStore
-  protected def createAppEntryStore(): IAppEntryStore
   protected def createConversationStore(): IConversationStore
   protected def createProfileStore(): IProfileStore
   protected def createPickUserStore(): IPickUserStore
@@ -63,7 +60,6 @@ abstract class StoreFactory extends IStoreFactory {
   protected def createNetworkStore(): INetworkStore
 
   override def zMessagingApiStore = _zMessagingApiStore()
-  override def appEntryStore = _appEntryStore()
   override def conversationStore = _conversationStore()
   override def profileStore = _profileStore()
   override def pickUserStore = _pickUserStore()
@@ -80,7 +76,6 @@ abstract class StoreFactory extends IStoreFactory {
     profileStore.tearDown()
     participantsStore.tearDown()
     inAppNotificationStore.tearDown()
-    appEntryStore.tearDown()
     singleParticipantStore.tearDown()
     draftStore.tearDown()
     networkStore.tearDown()

@@ -33,8 +33,6 @@ import com.waz.api.KindOfAccess;
 import com.waz.api.KindOfVerification;
 import com.waz.api.ZMessagingApi;
 import com.waz.zclient.R;
-import com.waz.zclient.core.stores.appentry.AppEntryError;
-import com.waz.zclient.newreg.utils.AppEntryUtil;
 import com.waz.zclient.pages.BaseDialogFragment;
 import com.waz.zclient.pages.main.profile.views.OnTextChangedListener;
 import com.waz.zclient.ui.utils.TypefaceUtils;
@@ -113,11 +111,8 @@ public class VerifyPhoneNumberPreferenceFragment extends BaseDialogFragment<Veri
                                                                           int errorCode,
                                                                           String message,
                                                                           String label) {
-                                             if (AppEntryError.PHONE_INVALID_REGISTRATION_CODE.correspondsTo(errorCode, label)) {
-                                                verificationCodeInputLayout.setError(getString(AppEntryError.PHONE_INVALID_REGISTRATION_CODE.headerResource));
-                                             } else {
-                                                verificationCodeInputLayout.setError(getString(AppEntryError.PHONE_REGISTER_GENERIC_ERROR.headerResource));
-                                             }
+
+                                             verificationCodeInputLayout.setError(getString(R.string.new_reg_phone_generic_error_header));
                                          }
                                      });
             }
@@ -156,7 +151,8 @@ public class VerifyPhoneNumberPreferenceFragment extends BaseDialogFragment<Veri
                                                                                  String message,
                                                                                  String label) {
                                          resendButton.animate().alpha(1f).start();
-                                         AppEntryUtil.showErrorDialog(getActivity(), AppEntryError.PHONE_REGISTER_GENERIC_ERROR, null);
+                                         verificationCodeInputLayout.setError(getString(R.string.new_reg_phone_generic_error_header));
+                                         //TODO: error dialog
                                      }
                                  });
             }

@@ -75,10 +75,10 @@ public class LaunchActivity extends BaseActivity implements InitListener {
     @Override
     public void onInitialized(Self self) {
         if (IntentUtils.isEmailVerificationIntent(getIntent())) {
-            getStoreFactory().appEntryStore().clearCurrentState();
+            //TODO: Any special behaviour?
         }
 
-        if (getStoreFactory().appEntryStore().getEntryPoint() == null && self.isLoggedIn()) {
+        if (self.isLoggedIn()) {
             switch (self.getClientRegistrationState()) {
                 case PASSWORD_MISSING:
                     startSignUp();

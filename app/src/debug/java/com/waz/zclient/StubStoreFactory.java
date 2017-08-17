@@ -19,7 +19,6 @@ package com.waz.zclient;
 
 import com.waz.zclient.core.stores.IStoreFactory;
 import com.waz.zclient.core.stores.api.IZMessagingApiStore;
-import com.waz.zclient.core.stores.appentry.IAppEntryStore;
 import com.waz.zclient.core.stores.connect.IConnectStore;
 import com.waz.zclient.core.stores.conversation.IConversationStore;
 import com.waz.zclient.core.stores.draft.IDraftStore;
@@ -44,11 +43,6 @@ public class StubStoreFactory implements IStoreFactory {
     @Override
     public boolean isTornDown() {
         return false;
-    }
-
-    @Override
-    public IAppEntryStore appEntryStore() {
-        return null;
     }
 
     @Override

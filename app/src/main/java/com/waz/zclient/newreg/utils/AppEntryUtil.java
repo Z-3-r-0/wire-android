@@ -20,8 +20,9 @@ package com.waz.zclient.newreg.utils;
 import android.app.Activity;
 import android.content.DialogInterface;
 import android.support.annotation.Nullable;
+
+import com.waz.zclient.EntryError;
 import com.waz.zclient.R;
-import com.waz.zclient.core.stores.appentry.AppEntryError;
 import com.waz.zclient.utils.ViewUtils;
 
 public final class AppEntryUtil {
@@ -29,11 +30,11 @@ public final class AppEntryUtil {
     private AppEntryUtil() { }
 
     public static void showErrorDialog(Activity activity,
-                                       AppEntryError appEntryError,
+                                       EntryError appEntryError,
                                        @Nullable final ErrorDialogCallback errorDialogCallback) {
         ViewUtils.showAlertDialog(activity,
-                                  appEntryError.headerResource,
-                                  appEntryError.messageResource,
+                                  appEntryError.headerResource(),
+                                  appEntryError.bodyResource(),
                                   R.string.reg__phone_alert__button,
                                   new DialogInterface.OnClickListener() {
                                       @Override

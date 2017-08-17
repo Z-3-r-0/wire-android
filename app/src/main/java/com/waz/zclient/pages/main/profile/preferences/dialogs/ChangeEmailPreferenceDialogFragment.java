@@ -34,7 +34,6 @@ import android.widget.EditText;
 import android.widget.TextView;
 import com.waz.api.CredentialsUpdateListener;
 import com.waz.zclient.R;
-import com.waz.zclient.core.stores.appentry.AppEntryError;
 import com.waz.zclient.pages.BaseDialogFragment;
 import com.waz.zclient.pages.main.profile.validator.EmailValidator;
 import com.waz.zclient.utils.ViewUtils;
@@ -205,13 +204,7 @@ public class ChangeEmailPreferenceDialogFragment extends BaseDialogFragment<Chan
                                                  dismiss();
                                                  return;
                                              }
-                                             if (AppEntryError.EMAIL_EXISTS.correspondsTo(errorCode, label)) {
-                                                 inputLayout.setError(getString(AppEntryError.EMAIL_EXISTS.headerResource));
-                                             } else if (AppEntryError.EMAIL_INVALID.correspondsTo(errorCode, label)) {
-                                                 inputLayout.setError(getString(AppEntryError.EMAIL_INVALID.headerResource));
-                                             } else {
-                                                 inputLayout.setError(getString(AppEntryError.EMAIL_GENERIC_ERROR.headerResource));
-                                             }
+                                             inputLayout.setError(getString(R.string.new_reg_email_register_generic_error_header));
                                          }
                                      });
     }

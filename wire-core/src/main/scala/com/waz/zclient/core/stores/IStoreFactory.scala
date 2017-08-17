@@ -18,7 +18,6 @@
 package com.waz.zclient.core.stores
 
 import com.waz.zclient.core.stores.api.IZMessagingApiStore
-import com.waz.zclient.core.stores.appentry.IAppEntryStore
 import com.waz.zclient.core.stores.connect.IConnectStore
 import com.waz.zclient.core.stores.conversation.IConversationStore
 import com.waz.zclient.core.stores.draft.IDraftStore
@@ -33,9 +32,6 @@ trait IStoreFactory {
   def tearDown(): Unit
 
   def isTornDown: Boolean
-
-  /* app entry*/
-  def appEntryStore: IAppEntryStore
 
   /* managing the conversation list */
   def conversationStore: IConversationStore

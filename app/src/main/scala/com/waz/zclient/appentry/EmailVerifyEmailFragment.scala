@@ -21,13 +21,12 @@ import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.TextView
-import com.waz.zclient.newreg.fragments.PhoneVerifyEmailFragment
 import com.waz.zclient.pages.BaseFragment
 import com.waz.zclient.ui.utils.{KeyboardUtils, TextViewUtils}
 import com.waz.zclient.{AppEntryController, FragmentHelper, R}
 
 object EmailVerifyEmailFragment {
-  val TAG: String = classOf[PhoneVerifyEmailFragment].getName
+  val TAG: String = classOf[EmailVerifyEmailFragment].getName
 
   def newInstance: Fragment = new EmailVerifyEmailFragment
 

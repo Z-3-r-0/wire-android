@@ -25,7 +25,7 @@ import com.waz.api.KindOfVerification;
 import com.waz.api.User;
 import com.waz.api.ZMessagingApi;
 import com.waz.api.impl.AccentColors;
-import com.waz.zclient.core.stores.appentry.AppEntryError;
+import com.waz.zclient.core.R;
 import com.waz.zclient.core.stores.profile.ProfileStore;
 
 public class ScalaProfileStore extends ProfileStore {
@@ -115,7 +115,7 @@ public class ScalaProfileStore extends ProfileStore {
 
             @Override
             public void onUpdateFailed(int errorCode, String message, String label) {
-                if (errorCode == AppEntryError.FORBIDDEN.errorCode) {
+                if (errorCode == 403) {
                     // Ignore error when password is already set
                     selfUser.setEmail(email, credentialsUpdateListener);
                 } else {
@@ -203,12 +203,10 @@ public class ScalaProfileStore extends ProfileStore {
             public void onUpdateFailed(int errorCode, String message, String label) {
                 // Edge case where password was set on another device while email/pw
                 // were being added on this one.
-                if (errorCode == AppEntryError.FORBIDDEN.errorCode) {
+                if (errorCode == 403) {
                     selfUser.setEmail(email, credentialUpdateListener);
                 } else {
-                    credentialUpdateListener.onUpdateFailed(AppEntryError.PHONE_ADD_PASSWORD.errorCode,
-                                                            "",
-                                                            AppEntryError.PHONE_ADD_PASSWORD.label);
+                    credentialUpdateListener.onUpdateFailed(errorCode, message, label);
                 }
             }
         });

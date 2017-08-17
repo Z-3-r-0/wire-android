@@ -45,11 +45,10 @@ import com.waz.threading.Threading
 import com.waz.utils.events.{EventStream, Signal}
 import com.waz.utils.returning
 import com.waz.zclient.controllers.deviceuser.IDeviceUserController
-import com.waz.zclient.core.stores.appentry.AppEntryError
 import com.waz.zclient.newreg.fragments.country.{Country, CountryController}
 import com.waz.zclient.ui.utils.{DrawableUtils, MathUtils}
 import com.waz.zclient.utils.{PermissionUtils, RichView, ViewUtils}
-import com.waz.zclient.{FragmentHelper, R}
+import com.waz.zclient._
 
 import scala.concurrent.Future
 import scala.util.Try
@@ -199,8 +198,10 @@ class ChangePhoneDialog extends DialogFragment with FragmentHelper with CountryC
                   onPhoneChanged ! Some(n)
                   dismiss()
                 case Left(ErrorResponse(c, _, l)) =>
-                  if (AppEntryError.PHONE_EXISTS.correspondsTo(c, l)) showError(getString(AppEntryError.PHONE_EXISTS.headerResource))
-                  else showError(getString(AppEntryError.PHONE_REGISTER_GENERIC_ERROR.headerResource))
+                  if (PhoneExistsError.code == c && PhoneExistsError.label == l)
+                    showError(getString(PhoneExistsError.headerResource))
+                  else
+                    showError(getString(GenericRegisterPhoneError.headerResource))
               } (Threading.Ui)
             } yield {}
           },

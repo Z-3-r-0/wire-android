@@ -38,6 +38,7 @@ import android.widget.LinearLayout;
 import com.waz.api.BitmapCallback;
 import com.waz.api.ImageAsset;
 import com.waz.api.LoadHandle;
+import com.waz.zclient.AppEntryController;
 import com.waz.zclient.BaseActivity;
 import com.waz.zclient.OnBackPressedListener;
 import com.waz.zclient.R;
@@ -311,7 +312,6 @@ public class SignUpPhotoFragment extends BaseFragment<SignUpPhotoFragment.Contai
                 getStoreFactory().isTornDown()) {
                 return false;
             }
-            getStoreFactory().appEntryStore().onBackPressed();
             return true;
         }
     }
@@ -389,16 +389,10 @@ public class SignUpPhotoFragment extends BaseFragment<SignUpPhotoFragment.Contai
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-                if (registrationType == RegistrationType.Phone) {
-                    getStoreFactory().appEntryStore().setPhonePicture(imageAsset);
-
-                } else {
-                    getStoreFactory().appEntryStore().setEmailPicture(imageAsset);
-                }
-
+                ((BaseActivity) getActivity()).injectJava(AppEntryController.class).setPicture(imageAsset);
                 RegistrationEventContext registrationEventContext = registrationType == SignUpPhotoFragment.RegistrationType.Phone ?
-                                                                    getStoreFactory().appEntryStore().getPhoneRegistrationContext() :
-                                                                    getStoreFactory().appEntryStore().getEmailRegistrationContext();
+                    RegistrationEventContext.PHONE :
+                    RegistrationEventContext.EMAIL;
                 ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new AddedPhotoEvent(OutcomeAttribute.SUCCESS, "", photoSource, registrationEventContext));
 
             }

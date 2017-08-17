@@ -33,7 +33,6 @@ import android.widget.EditText;
 import android.widget.TextView;
 import com.waz.api.CredentialsUpdateListener;
 import com.waz.zclient.R;
-import com.waz.zclient.core.stores.appentry.AppEntryError;
 import com.waz.zclient.pages.BaseDialogFragment;
 import com.waz.zclient.pages.main.profile.validator.EmailValidator;
 import com.waz.zclient.pages.main.profile.validator.PasswordValidator;
@@ -162,15 +161,7 @@ public class AddEmailAndPasswordPreferenceDialogFragment extends BaseDialogFragm
                                                           emailInputLayout == null) {
                                                           return;
                                                       }
-                                                      if (AppEntryError.PHONE_ADD_PASSWORD.correspondsTo(errorCode, label)) {
-                                                          passwordInputLayout.setError(getString(AppEntryError.PHONE_ADD_PASSWORD.headerResource));
-                                                      } else if (AppEntryError.EMAIL_EXISTS.correspondsTo(errorCode, label)) {
-                                                          passwordInputLayout.setError(getString(AppEntryError.EMAIL_EXISTS.headerResource));
-                                                      } else if (AppEntryError.EMAIL_INVALID.correspondsTo(errorCode, label)) {
-                                                          passwordInputLayout.setError(getString(AppEntryError.EMAIL_INVALID.headerResource));
-                                                      } else {
-                                                          passwordInputLayout.setError(getString(AppEntryError.EMAIL_GENERIC_ERROR.headerResource));
-                                                      }
+                                                      passwordInputLayout.setError(getString(R.string.new_reg_email_register_generic_error_header));
                                                   }
                                               });
     }

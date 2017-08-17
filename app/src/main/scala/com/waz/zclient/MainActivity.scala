@@ -144,7 +144,7 @@ class MainActivity extends BaseActivity
     }
 
     appEntryController.entryStage.onUi {
-      case EnterAppStage => onUserLoggedInAndVerified(getStoreFactory.getZMessagingApiStore.getApi.getSelf)
+      case EnterAppStage => onUserLoggedInAndVerified(getStoreFactory.zMessagingApiStore.getApi.getSelf)
       case DeviceLimitStage => showUnableToRegisterOtrClientDialog()
       case Unknown =>
         error("Unknown state")
@@ -156,7 +156,7 @@ class MainActivity extends BaseActivity
       getControllerFactory.getUserPreferencesController.setReferralToken(null)
 
       if (!TextUtils.isEmpty(token) && TextUtils.equals(token, AppEntryController.GenericInviteToken)){
-        getStoreFactory.getConnectStore.requestConnection(token)
+        getStoreFactory.connectStore.requestConnection(token)
         globalTracking.tagEvent(new AcceptedGenericInviteEvent)
       }
 

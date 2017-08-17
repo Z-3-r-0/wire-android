@@ -21,12 +21,9 @@ import com.waz.api.ImageAsset;
 import com.waz.api.Self;
 import com.waz.zclient.appentry.PhoneSetNameFragment;
 import com.waz.zclient.appentry.VerifyPhoneFragment;
-import com.waz.zclient.core.controllers.tracking.events.Event;
 import com.waz.zclient.core.stores.api.ZMessagingApiStoreObserver;
-import com.waz.zclient.core.stores.appentry.AppEntryStateCallback;
 import com.waz.zclient.fragments.CountryDialogFragment;
 import com.waz.zclient.newreg.fragments.PhoneAddEmailFragment;
-import com.waz.zclient.newreg.fragments.PhoneVerifyEmailFragment;
 import com.waz.zclient.newreg.fragments.SignUpPhotoFragment;
 import com.waz.zclient.newreg.fragments.country.CountryController;
 
@@ -36,108 +33,10 @@ import scala.runtime.BoxedUnit;
 public class AppEntryTestActivity extends TestActivity implements VerifyPhoneFragment.Container,
                                                                        PhoneSetNameFragment.Container,
                                                                        PhoneAddEmailFragment.Container,
-                                                                       PhoneVerifyEmailFragment.Container,
                                                                        SignUpPhotoFragment.Container,
                                                                        InAppWebViewFragment.Container,
                                                                        CountryDialogFragment.Container,
-                                                                       AppEntryStateCallback,
                                                                        ZMessagingApiStoreObserver {
-
-    @Override
-    public void onShowPhoneInvitationPage() {
-
-    }
-
-    @Override
-    public void onShowEmailInvitationPage() {
-
-    }
-
-    @Override
-    public void onInvitationFailed() {
-
-    }
-
-    @Override
-    public void onInvitationSuccess() {
-
-    }
-
-    @Override
-    public void onShowPhoneRegistrationPage() {
-
-    }
-
-    @Override
-    public void onShowPhoneSignInPage() {
-
-    }
-
-    @Override
-    public void onShowPhoneCodePage() {
-
-    }
-
-    @Override
-    public void onShowPhoneAddEmailPage() {
-
-    }
-
-    @Override
-    public void onShowPhoneVerifyEmailPage() {
-
-    }
-
-    @Override
-    public void onShowPhoneNamePage() {
-
-    }
-
-    @Override
-    public void onEnterApplication(boolean openSettings) {
-
-    }
-
-    @Override
-    public void onShowPhoneSetPicturePage() {
-
-    }
-
-    @Override
-    public void onShowEmailWelcomePage() {
-
-    }
-
-    @Override
-    public void onShowEmailRegistrationPage() {
-
-    }
-
-    @Override
-    public void onShowEmailVerifyEmailPage() {
-
-    }
-
-    @Override
-    public void onShowEmailSignInPage() {
-
-    }
-
-    @Override
-    public void onShowEmailSetPicturePage() {
-
-    }
-
-    @Override
-    public void onShowFirstLaunchPage() {
-
-    }
-
-    @Override
-    public void tagAppEntryEvent(Event event) {
-
-    }
-
     @Override
     public void onOpenUrl(String url) {
 

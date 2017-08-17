@@ -32,7 +32,7 @@ import com.waz.api.{BitmapCallback, ImageAsset, ImageAssetFactory, LoadHandle}
 import com.waz.service.{AccountsService, ZMessaging}
 import com.waz.utils.wrappers.AndroidURIUtil
 import com.waz.zclient.AppEntryController._
-import com.waz.zclient.appentry.{EmailVerifyEmailFragment, PhoneSetNameFragment, VerifyPhoneFragment}
+import com.waz.zclient.appentry.{EmailVerifyEmailFragment, FirstLaunchAfterLoginFragment, PhoneSetNameFragment, VerifyPhoneFragment}
 import com.waz.zclient.controllers.navigation.{NavigationControllerObserver, Page}
 import com.waz.zclient.controllers.tracking.screens.ApplicationScreen
 import com.waz.zclient.core.controllers.tracking.attributes.{Attribute, RegistrationEventContext}
@@ -108,10 +108,12 @@ class AppEntryActivity extends BaseActivity
     appEntryController.entryStage.onUi {
       case EnterAppStage =>
         onEnterApplication(false)
+      case FirstEnterAppStage =>
+        onShowFirstLaunchPage()
       case LoginStage =>
         onShowSignInPage()
       case DeviceLimitStage =>
-        onEnterApplication(true)
+        onEnterApplication(false)
       case AddNameStage =>
         onShowPhoneNamePage()
       case AddPictureStage =>
@@ -280,19 +282,9 @@ class AppEntryActivity extends BaseActivity
   }
 
   def onShowFirstLaunchPage(): Unit = {
-    val id: String = getStoreFactory.getAppEntryStore.getUserId
-    val hasUserLoggedIn: Boolean = getControllerFactory.getUserPreferencesController.hasUserLoggedIn(id)
-    if (id != null && hasUserLoggedIn) {
-      getStoreFactory.getAppEntryStore.setState(AppEntryState.LOGGED_IN)
-    }
-    else {
-      if (id != null) {
-        getControllerFactory.getUserPreferencesController.userLoggedIn(id)
-      }
-      val transaction: FragmentTransaction = getSupportFragmentManager.beginTransaction
-      setDefaultAnimation(transaction).replace(R.id.fl_main_content, FirstLaunchAfterLoginFragment.newInstance, FirstLaunchAfterLoginFragment.TAG).commit
-      enableProgress(false)
-    }
+    val transaction: FragmentTransaction = getSupportFragmentManager.beginTransaction
+    setDefaultAnimation(transaction).replace(R.id.fl_main_content, FirstLaunchAfterLoginFragment.newInstance, FirstLaunchAfterLoginFragment.TAG).commit
+    enableProgress(false)
   }
 
   def tagAppEntryEvent(event: Event): Unit = {

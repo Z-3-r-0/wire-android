@@ -95,7 +95,7 @@ class ChangeEmailDialog extends DialogFragment with FragmentHelper {
     passwordInputLayout
     passwordEditText
 
-    passwordInputLayout.setVisible(addingNewEmail && needsPassword)
+    passwordInputLayout.setVisible(addingNewEmail || needsPassword)
 
     //TODO tidy this up - we could split up the error types and set them on the appropriate layout a little better
     onError.onUi {
@@ -133,7 +133,7 @@ class ChangeEmailDialog extends DialogFragment with FragmentHelper {
     val password = Option(passwordInputLayout.getEditText.getText.toString.trim).filter(passwordValidator.validate)
 
     (email, password) match {
-      case (Some(e), Some(newPassword)) if needsPassword =>
+      case (Some(e), Some(newPassword)) if addingNewEmail =>
         zms.head.flatMap { z =>
           //Check now that a password was saved - since updating the password could have succeeded, while the email not
           //and further more, the user could change the password again!
@@ -151,7 +151,11 @@ class ChangeEmailDialog extends DialogFragment with FragmentHelper {
             dismiss()
           case Left(error) => onError ! error
         }
-
+      case (Some(e), Some(newPassword)) =>
+        zms.head.flatMap { _.account.updateEmail(EmailAddress(e))}.map { _ =>
+          onEmailChanged ! e
+          dismiss()
+        }
       case (Some(e), _) if !needsPassword =>
         for {
           z <- zms.head

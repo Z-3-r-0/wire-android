@@ -145,7 +145,7 @@ class MainActivity extends BaseActivity
 
     appEntryController.entryStage.onUi {
       case EnterAppStage => onUserLoggedInAndVerified(getStoreFactory.getZMessagingApiStore.getApi.getSelf)
-      case DeviceLimitStage => manageDevices()
+      case DeviceLimitStage => showUnableToRegisterOtrClientDialog()
       case Unknown =>
         error("Unknown state")
       case _ => openSignUpPage()

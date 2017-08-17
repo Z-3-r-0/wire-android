@@ -221,7 +221,6 @@ class SignInFragment extends BaseFragment[Container] with FragmentHelper with Vi
             getActivity.asInstanceOf[AppEntryActivity].enableProgress(false)
             showError(error)
           case _ =>
-            getActivity.asInstanceOf[AppEntryActivity].enableProgress(false)
         }
       case R.id.close_button =>
         getContainer.abortAddAccount()

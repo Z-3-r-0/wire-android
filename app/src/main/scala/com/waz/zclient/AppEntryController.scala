@@ -90,11 +90,12 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
           AddNameStage
         } else
           LoginStage
-      case (Some(accountData), Some(userData)) =>
-        if (userData.picture.isEmpty) {
-          return AddPictureStage
-        }
+      case (Some(accountData), Some(userData)) if userData.picture.isEmpty =>
+        AddPictureStage
+      case (Some(accountData), Some(userData)) if accountData.loggedIn =>
         EnterAppStage
+      case (Some(accountData), Some(userData)) =>
+        FirstEnterAppStage
       case _ =>
         LoginStage
     }
@@ -197,12 +198,13 @@ object AppEntryController {
   val GenericInviteToken: String = "getwire"
 
   trait AppEntryStage
-  object Unknown          extends AppEntryStage
-  object EnterAppStage    extends AppEntryStage
-  object DeviceLimitStage extends AppEntryStage
-  object AddNameStage     extends AppEntryStage
-  object AddPictureStage  extends AppEntryStage
-  object VerifyEmailStage extends AppEntryStage
-  object VerifyPhoneStage extends AppEntryStage
-  object LoginStage       extends AppEntryStage
+  object Unknown            extends AppEntryStage
+  object EnterAppStage      extends AppEntryStage
+  object FirstEnterAppStage extends AppEntryStage
+  object DeviceLimitStage   extends AppEntryStage
+  object AddNameStage       extends AppEntryStage
+  object AddPictureStage    extends AppEntryStage
+  object VerifyEmailStage   extends AppEntryStage
+  object VerifyPhoneStage   extends AppEntryStage
+  object LoginStage         extends AppEntryStage
 }

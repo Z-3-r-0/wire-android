@@ -91,10 +91,10 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
           LoginStage
       case (Some(accountData), Some(userData)) if userData.picture.isEmpty =>
         AddPictureStage
-      case (Some(accountData), Some(userData)) if accountData.loggedIn =>
-        EnterAppStage
-      case (Some(accountData), Some(userData)) =>
+      case (Some(accountData), Some(userData)) if accountData.firstLogin =>
         FirstEnterAppStage
+      case (Some(accountData), Some(userData)) =>
+        EnterAppStage
       case _ =>
         LoginStage
     }

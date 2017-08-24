@@ -30,6 +30,7 @@ import com.waz.ZLog
 import com.waz.ZLog.ImplicitTag._
 import com.waz.api.{BitmapCallback, ImageAsset, ImageAssetFactory, LoadHandle}
 import com.waz.service.{AccountsService, ZMessaging}
+import com.waz.threading.Threading
 import com.waz.utils.wrappers.AndroidURIUtil
 import com.waz.zclient.AppEntryController._
 import com.waz.zclient.appentry.{EmailVerifyEmailFragment, FirstLaunchAfterLoginFragment, PhoneSetNameFragment, VerifyPhoneFragment}
@@ -175,15 +176,17 @@ class AppEntryActivity extends BaseActivity
   }
 
   def abortAddAccount(): Unit = {
+    implicit val ec = Threading.Ui
     enableProgress(true)
-    ZMessaging.currentAccounts.fallbackToLastAccount(new AccountsService.SwapAccountCallback() {
-      def onSwapComplete(): Unit = {
+    ZMessaging.currentAccounts.loggedInAccounts.head.map { accounts =>
+      accounts.headOption.fold {
         enableProgress(false)
-        onEnterApplication(true)
+      } { acc =>
+        ZMessaging.currentAccounts.switchAccount(acc.id).map { _ =>
+          onEnterApplication(true)
+        }
       }
-
-      def onSwapFailed(): Unit = enableProgress(false)
-    })
+    }
   }
 
   def onOpenUrl(url: String): Unit = {

@@ -45,8 +45,6 @@ import static org.mockito.Mockito.spy;
 public class MockStoreFactory implements IStoreFactory {
   protected IZMessagingApiStore zMessagingApiStore = spy(StubZMessagingApiStore.class);
 
-  protected IAppEntryStore appEntryStore = spy(StubAppEntryStore.class);
-
   protected IConnectStore connectStore = spy(StubConnectStore.class);
 
   protected IDraftStore draftStore = spy(StubDraftStore.class);
@@ -86,11 +84,6 @@ public class MockStoreFactory implements IStoreFactory {
   @Override
   public ISingleParticipantStore singleParticipantStore() {
     return singleParticipantStore;
-  }
-
-  @Override
-  public IAppEntryStore appEntryStore() {
-    return appEntryStore;
   }
 
   @Override

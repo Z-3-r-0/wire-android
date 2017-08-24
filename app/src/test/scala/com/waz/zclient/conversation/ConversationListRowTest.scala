@@ -133,7 +133,7 @@ class ConversationListRowTest extends JUnitSuite {
   }
 
   def createGenericCallInfo(): CallInfo ={
-    CallInfo(ConvId(convId), UserId(), CallState.OtherCalling, isGroup = true)
+    CallInfo(ConvId(convId), UserId(), CallState.OtherCalling)
   }
 
   def createMessage(mId: String, cId: String, uId:String, content: String, tpe: Message.Type): MessageData = {

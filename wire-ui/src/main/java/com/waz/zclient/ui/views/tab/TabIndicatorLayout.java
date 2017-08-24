@@ -74,7 +74,9 @@ public class TabIndicatorLayout extends LinearLayout implements ViewPager.OnPage
 
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
-        if (isInEditMode()) return;
+        if (isInEditMode()) {
+            return;
+        }
         super.onSizeChanged(w, h, oldw, oldh);
 
 

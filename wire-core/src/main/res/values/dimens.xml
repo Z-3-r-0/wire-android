@@ -884,4 +884,5 @@
     <dimen name="new_cursor_menu_button_width">56dp</dimen>
     <dimen name="new_cursor_button_horizontal_margin">16dp</dimen>
     <dimen name="new_cursor_button_left_margin">4dp</dimen>
+    <dimen name="phone_sign_in_container_height">160dp</dimen>
 </resources>

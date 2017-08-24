@@ -25,7 +25,6 @@ import com.waz.api.KindOfVerification;
 import com.waz.api.User;
 import com.waz.api.ZMessagingApi;
 import com.waz.api.impl.AccentColors;
-import com.waz.zclient.core.R;
 import com.waz.zclient.core.stores.profile.ProfileStore;
 
 public class ScalaProfileStore extends ProfileStore {

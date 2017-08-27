@@ -33,7 +33,6 @@ import com.waz.utils.wrappers.AndroidURIUtil;
 import com.waz.utils.wrappers.URI;
 import com.waz.zclient.LaunchActivity;
 import com.waz.zclient.MainActivity;
-import com.waz.zclient.PopupActivity;
 import com.waz.zclient.R;
 import com.waz.zclient.controllers.notifications.ShareSavedImageActivity;
 import hugo.weaving.DebugLog;
@@ -237,10 +236,6 @@ public class IntentUtils {
         return intent;
     }
 
-    public static Intent getAppLaunchIntent(@NonNull Context context, String conversationId) {
-        return getAppLaunchIntent(context, conversationId, (String) null);
-    }
-
     public static Intent getAppLaunchIntent(@NonNull Context context) {
         return getAppLaunchIntent(context, new ArrayList<String>(), (String) null, EphemeralExpiration.NONE);
     }
@@ -253,21 +248,6 @@ public class IntentUtils {
         Intent intent = new Intent(context, MainActivity.class);
         intent.putExtra(EXTRA_LAUNCH_FROM_NOTIFICATION, true);
         intent.putExtra(EXTRA_LAUNCH_START_CALL, false);
-        intent.putStringArrayListExtra(EXTRA_LAUNCH_CONVERSATION_IDS, new ArrayList<>(Collections.singletonList(conversationId)));
-        return PendingIntent.getActivity(context, requestCode, intent, 0);
-    }
-
-    public static PendingIntent getNotificationCallIntent(@NonNull Context context, String conversationId, int requestCode) {
-        Intent intent = new Intent(context, MainActivity.class);
-        intent.putExtra(EXTRA_LAUNCH_FROM_NOTIFICATION, true);
-        intent.putExtra(EXTRA_LAUNCH_START_CALL, true);
-        intent.putStringArrayListExtra(EXTRA_LAUNCH_CONVERSATION_IDS, new ArrayList<>(Collections.singletonList(conversationId)));
-        return PendingIntent.getActivity(context, requestCode, intent, 0);
-    }
-
-    public static PendingIntent getNotificationReplyIntent(Context context, String conversationId, int requestCode) {
-        Intent intent = new Intent(context, PopupActivity.class);
-        intent.putExtra(EXTRA_LAUNCH_FROM_NOTIFICATION, true);
         intent.putStringArrayListExtra(EXTRA_LAUNCH_CONVERSATION_IDS, new ArrayList<>(Collections.singletonList(conversationId)));
         return PendingIntent.getActivity(context, requestCode, intent, 0);
     }

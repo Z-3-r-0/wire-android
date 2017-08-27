@@ -27,12 +27,13 @@ import android.os.{Build, Bundle, Handler}
 import android.support.v4.app.Fragment
 import android.text.TextUtils
 import com.localytics.android.Localytics
+import com.waz.ZLog
 import com.waz.ZLog.ImplicitTag._
-import com.waz.ZLog.{error, info, warn}
+import com.waz.ZLog.{error, info, verbose, warn}
 import com.waz.api.{NetworkMode, _}
-import com.waz.model.ConvId
+import com.waz.model.{AccountId, ConvId}
 import com.waz.service.ZMessaging
-import com.waz.threading.Threading
+import com.waz.threading.{CancellableFuture, Threading}
 import com.waz.utils.events.Signal
 import com.waz.utils.returning
 import com.waz.zclient.AppEntryController.{DeviceLimitStage, EnterAppStage, Unknown}
@@ -56,6 +57,8 @@ import com.waz.zclient.core.stores.connect.{ConnectStoreObserver, IConnectStore}
 import com.waz.zclient.core.stores.conversation.{ConversationChangeRequester, ConversationStoreObserver}
 import com.waz.zclient.core.stores.profile.ProfileStoreObserver
 import com.waz.zclient.fragments.ConnectivityFragment
+import com.waz.zclient.notifications.controllers.MessageNotificationsController
+import com.waz.zclient.notifications.controllers.MessageNotificationsController.NotificationIntent
 import com.waz.zclient.pages.main.grid.GridFragment
 import com.waz.zclient.pages.main.{MainPhoneFragment, MainTabletFragment}
 import com.waz.zclient.pages.startup.UpdateFragment
@@ -68,6 +71,7 @@ import net.hockeyapp.android.{ExceptionHandler, NativeCrashManager}
 
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
+import scala.concurrent.duration._
 
 class MainActivity extends BaseActivity
   with ActivityHelper
@@ -261,11 +265,13 @@ class MainActivity extends BaseActivity
 
   override protected def onNewIntent(intent: Intent) = {
     super.onNewIntent(intent)
+
     if (IntentUtils.isPasswordResetIntent(intent)) onPasswordWasReset()
 
     onLaunch()
 
     setIntent(intent)
+    handleNotificationIntent(intent)
 
     Option(intent.getStringExtra(LaunchActivity.APP_PAGE)).filter(_.nonEmpty).foreach { page =>
       setIntent(IntentUtils.resetAppPage(intent))
@@ -281,7 +287,7 @@ class MainActivity extends BaseActivity
   private def restartActivity() = {
     info("restartActivity")
     finish()
-    startActivity(IntentUtils.getAppLaunchIntent(this))
+    startActivity(getIntent)
     overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
   }
 
@@ -327,26 +333,14 @@ class MainActivity extends BaseActivity
   }
 
   private def onUserLoggedInAndVerified(self: Self) = {
+
     getStoreFactory.profileStore.setUser(self)
     getControllerFactory.getAccentColorController.setColor(AccentColorChangeRequester.LOGIN, self.getAccent.getColor)
     getControllerFactory.getUsernameController.setUser(self)
 
     getIntent match {
-      case intent if IntentUtils.isLaunchFromNotificationIntent(intent) =>
-        val startCallNotificationIntent = IntentUtils.isStartCallNotificationIntent(intent)
-        info(s"Start from notification with call=$startCallNotificationIntent")
-
-        Option(getStoreFactory.conversationStore.getConversation(IntentUtils.getLaunchConversationId(intent))).foreach { conversation =>
-          // Only want to swipe over when app has loaded
-          new Handler().postDelayed(new Runnable() {
-            def run() = {
-              getStoreFactory.conversationStore.setCurrentConversation(Option(conversation), ConversationChangeRequester.NOTIFICATION)
-              if (startCallNotificationIntent) startCall(false)
-            }
-          }, MainActivity.LAUNCH_CONVERSATION_CHANGE_DELAY)
-        }
-        IntentUtils.clearLaunchIntentExtra(intent)
-        setIntent(intent)
+      case intent if intent.fromNotification  =>
+        handleNotificationIntent(intent)
 
       case intent if IntentUtils.isLaunchFromSharingIntent(intent) =>
         val sharedText = IntentUtils.getLaunchConversationSharedText(intent)
@@ -373,7 +367,7 @@ class MainActivity extends BaseActivity
               def run() = {
                 getStoreFactory.conversationStore.setCurrentConversation(Option(conv), ConversationChangeRequester.SHARING)
               }
-            }, MainActivity.LAUNCH_CONVERSATION_CHANGE_DELAY)
+            }, MainActivity.LaunchChangeConversationDelay.toMillis.toInt)
 
           case convs => sharingController.sendContent(sharedText, sharedFileUris, convs.asJava, expiration, this)
         }
@@ -384,6 +378,27 @@ class MainActivity extends BaseActivity
       case intent => setIntent(intent)
     }
     openMainPage()
+  }
+
+  def handleNotificationIntent(intent: Intent) = {
+    import MessageNotificationsController.NotificationIntent
+    verbose(s"handleNotificationIntent: ${intent.log}")
+    if (intent.fromNotification && intent.accountId.isDefined && intent.convId.isDefined) {
+      val accounts = ZMessaging.currentAccounts
+
+      accounts.activeAccount.head.flatMap {
+        case Some(acc) if intent.accountId.contains(acc.id) =>
+          CancellableFuture.delay(MainActivity.LaunchChangeConversationDelay).map { _ =>
+            val conv = getStoreFactory.conversationStore.getConversation(intent.convId.get.str)
+            getStoreFactory.conversationStore.setCurrentConversation(conv, ConversationChangeRequester.NOTIFICATION)
+            if (intent.startCall) startCall(false)
+            //no longer need this intent - remove it to prevent it from being reused
+            intent.clearExtras()
+            setIntent(intent)
+          }(Threading.Ui)
+        case _ => accounts.switchAccount(intent.accountId.get)
+      }(Threading.Background)
+    }
   }
 
   /**
@@ -627,6 +642,6 @@ class MainActivity extends BaseActivity
 }
 
 object MainActivity {
-  private val LAUNCH_CONVERSATION_CHANGE_DELAY: Int = 123
+  private val LaunchChangeConversationDelay = 123.millis
   val OpenSettingsArg = "OpenSettingsArg"
 }

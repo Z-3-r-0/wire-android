@@ -53,7 +53,7 @@ import com.waz.zclient.core.controllers.tracking.events.media.OpenedMediaActionE
 import com.waz.zclient.core.controllers.tracking.events.session.LoggedOutEvent
 import com.waz.zclient.core.stores.api.ZMessagingApiStoreObserver
 import com.waz.zclient.core.stores.connect.{ConnectStoreObserver, IConnectStore}
-import com.waz.zclient.core.stores.conversation.{ConversationChangeRequester, ConversationStoreObserver}
+import com.waz.zclient.core.stores.conversation.ConversationChangeRequester
 import com.waz.zclient.core.stores.profile.ProfileStoreObserver
 import com.waz.zclient.fragments.ConnectivityFragment
 import com.waz.zclient.pages.main.grid.GridFragment
@@ -80,8 +80,7 @@ class MainActivity extends BaseActivity
   with NavigationControllerObserver
   with CallingObserver
   with OtrDeviceLimitFragment.Container
-  with ZMessagingApiStoreObserver
-  with ConversationStoreObserver {
+  with ZMessagingApiStoreObserver {
 
   import Threading.Implicits.Background
 
@@ -178,7 +177,6 @@ class MainActivity extends BaseActivity
     getStoreFactory.connectStore.addConnectRequestObserver(this)
     getControllerFactory.getNavigationController.addNavigationControllerObserver(this)
     getControllerFactory.getCallingController.addCallingObserver(this)
-    getStoreFactory.conversationStore.addConversationStoreObserver(this)
 
     super.onStart()
     //This is needed to drag the user back to the calling activity if they open the app again during a call
@@ -232,7 +230,6 @@ class MainActivity extends BaseActivity
   override def onStop() = {
     super.onStop()
     info("onStop")
-    getStoreFactory.conversationStore.removeConversationStoreObserver(this)
     getControllerFactory.getCallingController.removeCallingObserver(this)
     getStoreFactory.zMessagingApiStore.removeApiObserver(this)
     getStoreFactory.connectStore.removeConnectRequestObserver(this)
@@ -591,16 +588,6 @@ class MainActivity extends BaseActivity
       case _ => startCall(withVideo)
     }(Threading.Ui)
   }
-
-  def onConversationListUpdated(conversationsList: ConversationsList) = ()
-
-  def onConversationListStateHasChanged(state: ConversationsList.ConversationsListState) = ()
-
-  def onCurrentConversationHasChanged(fromConversation: IConversation, toConversation: IConversation, conversationChangerSender: ConversationChangeRequester) = ()
-
-  def onConversationSyncingStateHasChanged(syncState: SyncState) = ()
-
-  def onMenuConversationHasChanged(fromConversation: IConversation) = ()
 
   private def checkForUnsupportedEmojis() =
     for {

@@ -19,8 +19,8 @@ package com.waz.zclient.notifications.controllers
 
 import android.annotation.TargetApi
 import android.app.{Notification, NotificationManager, PendingIntent}
-import android.content.{Context, Intent}
 import android.content.pm.PackageManager
+import android.content.{Context, Intent}
 import android.graphics.drawable.{BitmapDrawable, Drawable}
 import android.graphics.{Bitmap, BitmapFactory, Canvas}
 import android.net.Uri
@@ -33,7 +33,7 @@ import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog.{error, verbose}
 import com.waz.api.NotificationsHandler.NotificationType
 import com.waz.api.NotificationsHandler.NotificationType._
-import com.waz.{ZLog, bitmap}
+import com.waz.bitmap
 import com.waz.model.{AccountId, ConvId}
 import com.waz.service.ZMessaging
 import com.waz.service.push.NotificationService.NotificationInfo
@@ -374,8 +374,8 @@ object MessageNotificationsController {
     def fromNotification = Option(intent).exists(_.getBooleanExtra(FromNotificationExtra, false))
     def startCall = Option(intent).exists(_.getBooleanExtra(StartCallExtra, false))
 
-    def accountId = Option(intent).map(_.getStringExtra(AccountIdExtra)).map(AccountId)
-    def convId = Option(intent).map(_.getStringExtra(ConvIdExtra)).map(ConvId)
+    def accountId = Option(intent).map(_.getStringExtra(AccountIdExtra)).filter(_ != null).map(AccountId)
+    def convId = Option(intent).map(_.getStringExtra(ConvIdExtra)).filter(_ != null).map(ConvId)
 
     def clearExtras() = Option(intent).foreach { i =>
       i.removeExtra(FromNotificationExtra)

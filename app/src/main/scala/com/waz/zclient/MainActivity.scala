@@ -261,6 +261,7 @@ class MainActivity extends BaseActivity
 
   override protected def onNewIntent(intent: Intent) = {
     super.onNewIntent(intent)
+    verbose(s"onNewIntent: $intent")
 
     if (IntentUtils.isPasswordResetIntent(intent)) onPasswordWasReset()
 
@@ -329,7 +330,7 @@ class MainActivity extends BaseActivity
   }
 
   private def onUserLoggedInAndVerified(self: Self) = {
-
+    verbose("onUserLoggedInAndVerified")
     getStoreFactory.profileStore.setUser(self)
     getControllerFactory.getAccentColorController.setColor(AccentColorChangeRequester.LOGIN, self.getAccent.getColor)
     getControllerFactory.getUsernameController.setUser(self)
@@ -386,6 +387,7 @@ class MainActivity extends BaseActivity
         case Some(acc) if intent.accountId.contains(acc.id) =>
           CancellableFuture.delay(MainActivity.LaunchChangeConversationDelay).map { _ =>
             val conv = getStoreFactory.conversationStore.getConversation(intent.convId.get.str)
+            verbose(s"setting conversation: ${conv.getId}")
             getStoreFactory.conversationStore.setCurrentConversation(conv, ConversationChangeRequester.NOTIFICATION)
             if (intent.startCall) startCall(false)
             //no longer need this intent - remove it to prevent it from being reused
@@ -445,16 +447,6 @@ class MainActivity extends BaseActivity
   def onForceClientUpdate() = openForceUpdatePage()
 
   def onAccentColorChangedRemotely(sender: Any, color: Int) = getControllerFactory.getAccentColorController.setColor(AccentColorChangeRequester.REMOTE, color)
-
-  def onMyNameHasChanged(sender: Any, myName: String) = ()
-
-  def onMyEmailHasChanged(myEmail: String, isVerified: Boolean) = ()
-
-  def onMyPhoneHasChanged(myPhone: String, isVerified: Boolean) = ()
-
-  def onPhoneUpdateFailed(myPhone: String, errorCode: Int, message: String, label: String) = ()
-
-  def onMyEmailAndPasswordHasChanged(myEmail: String) = ()
 
   //TODO this is all tracking - make a page controller and set a signal the global tracking controller can listen to
   def onPageVisible(page: Page) = {
@@ -623,8 +615,6 @@ class MainActivity extends BaseActivity
 
       if (missing.nonEmpty) prefs.setUnsupportedEmoji(missing.asJava, Emojis.VERSION)
     }
-
-  def onMyUsernameHasChanged(myUsername: String) = ()
 }
 
 object MainActivity {

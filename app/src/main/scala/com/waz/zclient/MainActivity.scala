@@ -432,16 +432,6 @@ class MainActivity extends BaseActivity
 
   def onAccentColorChangedRemotely(sender: Any, color: Int) = getControllerFactory.getAccentColorController.setColor(AccentColorChangeRequester.REMOTE, color)
 
-  def onMyNameHasChanged(sender: Any, myName: String) = ()
-
-  def onMyEmailHasChanged(myEmail: String, isVerified: Boolean) = ()
-
-  def onMyPhoneHasChanged(myPhone: String, isVerified: Boolean) = ()
-
-  def onPhoneUpdateFailed(myPhone: String, errorCode: Int, message: String, label: String) = ()
-
-  def onMyEmailAndPasswordHasChanged(myEmail: String) = ()
-
   //TODO this is all tracking - make a page controller and set a signal the global tracking controller can listen to
   def onPageVisible(page: Page) = {
     getControllerFactory.getGlobalLayoutController.setSoftInputModeForPage(page)
@@ -609,8 +599,6 @@ class MainActivity extends BaseActivity
 
       if (missing.nonEmpty) prefs.setUnsupportedEmoji(missing.asJava, Emojis.VERSION)
     }
-
-  def onMyUsernameHasChanged(myUsername: String) = ()
 }
 
 object MainActivity {
